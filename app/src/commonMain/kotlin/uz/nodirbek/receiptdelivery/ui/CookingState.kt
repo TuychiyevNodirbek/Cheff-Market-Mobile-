@@ -1,4 +1,4 @@
-package uz.nodirbek.receiptdelivery.ui.state
+package uz.nodirbek.receiptdelivery.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

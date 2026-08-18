@@ -1,4 +1,4 @@
-package uz.nodirbek.receiptdelivery.ui.state
+package uz.nodirbek.receiptdelivery.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -8,7 +8,6 @@ import com.yandex.mapkit.geometry.Point
 import uz.nodirbek.receiptdelivery.data.DISTRICT_COORDS
 import uz.nodirbek.receiptdelivery.data.OFF_ZONE_DISTRICT
 import uz.nodirbek.receiptdelivery.data.SavedAddress
-import uz.nodirbek.receiptdelivery.ui.Screen
 
 /** District/address selection and the location-picker flow. Stays androidMain because it's expressed
  *  in terms of Yandex MapKit's Point (map integration is a later phase). Methods that resolve to a

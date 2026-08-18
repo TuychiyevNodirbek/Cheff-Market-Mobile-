@@ -1,4 +1,4 @@
-package uz.nodirbek.receiptdelivery.ui.state
+package uz.nodirbek.receiptdelivery.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -7,8 +7,6 @@ import androidx.compose.runtime.setValue
 import com.yandex.mapkit.geometry.Point
 import uz.nodirbek.receiptdelivery.data.Order
 import uz.nodirbek.receiptdelivery.data.Recipe
-import uz.nodirbek.receiptdelivery.ui.OrderStatusStep
-import uz.nodirbek.receiptdelivery.ui.STATUS_LABELS
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

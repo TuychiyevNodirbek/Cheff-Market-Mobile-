@@ -1,4 +1,4 @@
-package uz.nodirbek.receiptdelivery.ui.state
+package uz.nodirbek.receiptdelivery.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -10,9 +10,6 @@ import uz.nodirbek.receiptdelivery.data.Recipe
 import uz.nodirbek.receiptdelivery.data.StockStatus
 import uz.nodirbek.receiptdelivery.data.imageResFor
 import uz.nodirbek.receiptdelivery.data.money
-import uz.nodirbek.receiptdelivery.ui.CartRow
-import uz.nodirbek.receiptdelivery.ui.RecipeCard
-import uz.nodirbek.receiptdelivery.ui.ScaledIngredient
 import uz.nodirbek.receiptdelivery.ui.theme.Amber
 import uz.nodirbek.receiptdelivery.ui.theme.Green
 

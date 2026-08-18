@@ -12,12 +12,6 @@ import uz.nodirbek.receiptdelivery.data.SavedAddress
 import uz.nodirbek.receiptdelivery.data.SettingsSnapshot
 import uz.nodirbek.receiptdelivery.data.Step
 import uz.nodirbek.receiptdelivery.data.money
-import uz.nodirbek.receiptdelivery.ui.state.AuthState
-import uz.nodirbek.receiptdelivery.ui.state.CartState
-import uz.nodirbek.receiptdelivery.ui.state.CookingState
-import uz.nodirbek.receiptdelivery.ui.state.LocationState
-import uz.nodirbek.receiptdelivery.ui.state.OrderState
-import uz.nodirbek.receiptdelivery.ui.state.SettingsState
 
 enum class Screen {
     ONB1, ONB2, AUTH_PHONE, AUTH_OTP, AUTH_PROFILE, DISTRICT, OFFZONE, HOME, SEARCH, RECIPE, CART, CHECKOUT, TRACKING, COOKING, PROFILE, ORDER_HISTORY, ADDRESSES, SETTINGS

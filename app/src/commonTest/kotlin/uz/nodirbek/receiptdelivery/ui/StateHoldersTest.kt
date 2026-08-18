@@ -1,4 +1,4 @@
-package uz.nodirbek.receiptdelivery.ui.state
+package uz.nodirbek.receiptdelivery.ui
 
 import uz.nodirbek.receiptdelivery.data.AuthSnapshot
 import uz.nodirbek.receiptdelivery.data.RECIPES
