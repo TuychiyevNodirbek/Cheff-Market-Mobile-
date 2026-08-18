@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- chef hat puff -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,40 A16,16 0 1,0 70,40 A16,16 0 1,0 38,40 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M29,50 A11,11 0 1,0 51,50 A11,11 0 1,0 29,50 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M57,50 A11,11 0 1,0 79,50 A11,11 0 1,0 57,50 Z" />
+    <!-- chef hat band -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,68 L74,68 a4,4 0 0 1 4,4 L78,78 a4,4 0 0 1 -4,4 L38,82 a4,4 0 0 1 -4,-4 L34,72 a4,4 0 0 1 4,-4 Z" />
+</vector>
