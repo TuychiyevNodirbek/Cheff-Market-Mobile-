@@ -1,6 +1,6 @@
 package uz.nodirbek.receiptdelivery.data
 
-import uz.nodirbek.receiptdelivery.R
+import uz.nodirbek.receiptdelivery.shared.R
 
 private val IMAGE_RES_BY_KEY: Map<String, Int> = mapOf(
     "lagman" to R.drawable.dish_lagman,

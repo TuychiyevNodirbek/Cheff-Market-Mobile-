@@ -20,5 +20,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Receipe Delivery"
-include(":app")
+include(":androidApp")
+include(":shared")
  
