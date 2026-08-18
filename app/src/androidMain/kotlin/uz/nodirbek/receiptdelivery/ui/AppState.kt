@@ -1,8 +1,8 @@
 package uz.nodirbek.receiptdelivery.ui
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavHostController
 import com.yandex.mapkit.geometry.Point
 import uz.nodirbek.receiptdelivery.data.AuthSnapshot
 import uz.nodirbek.receiptdelivery.data.CartSnapshot
@@ -85,15 +85,19 @@ val PAYMENT_OPTIONS = listOf(
 
 val STATUS_LABELS = listOf("Принят", "Собирается", "В пути", "Доставлен")
 
+/** Bottom-tab destinations always behave as a fresh stack root: back exits the app from any of
+ *  them, and re-visiting one never grows the stack. Since all screen state lives in AppState
+ *  (not nav-entry-scoped view models), clearing the back stack loses no in-progress UI state. */
+private val TAB_ROOTS = setOf(Screen.HOME, Screen.SEARCH, Screen.TRACKING, Screen.PROFILE)
+
 /**
  * Root coordinator: composes the per-feature state holders (auth/cart/order/cooking/settings/location)
- * and owns cross-cutting screen navigation. Exposes the same flat property/method surface the screens
- * already use (via delegation), so splitting the old god-object into focused classes didn't require
- * touching any screen file.
+ * and owns cross-cutting screen navigation via a real androidx.navigation back stack. Exposes the same
+ * flat property/method surface the screens already use (via delegation), so splitting the old
+ * god-object into focused classes - and later replacing the hand-rolled Screen-enum navigation with a
+ * real NavController - didn't require touching any screen file.
  */
-class AppState {
-    var screen by mutableStateOf(Screen.ONB1)
-
+class AppState(private val navController: NavHostController) {
     private val auth = AuthState()
     private val cart = CartState()
     private val order = OrderState()
@@ -110,14 +114,14 @@ class AppState {
     fun submitPhone(phone: String) {
         auth.userPhone = phone
         auth.otpError = false
-        screen = Screen.AUTH_OTP
+        go(Screen.AUTH_OTP)
     }
 
     /** No real SMS backend — any 4-digit code is accepted, matching the "demo code" hint shown on screen. */
     fun verifyOtp(code: String) {
         if (code.length == 4) {
             auth.otpError = false
-            screen = Screen.AUTH_PROFILE
+            go(Screen.AUTH_PROFILE)
         } else {
             auth.otpError = true
         }
@@ -129,20 +133,22 @@ class AppState {
         openLocationPicker(Screen.AUTH_PROFILE, Screen.HOME)
     }
 
+    /** Clears the entire back stack so logging out can't be undone with the system back button. */
     fun logout() {
         auth.isAuthenticated = false
         auth.userName = ""
         auth.userPhone = ""
-        screen = Screen.ONB1
+        resetStackTo(Screen.ONB1)
     }
 
     fun authSnapshot(): AuthSnapshot = auth.snapshot()
 
+    /** Pure field restore only - no navigation. The initial screen for a returning, already-authenticated
+     *  user is chosen once as NavHost's startDestination in RecipeApp.kt, before this is even called. */
     fun applyAuthSnapshot(s: AuthSnapshot) {
         auth.isAuthenticated = s.isAuthenticated
         auth.userPhone = s.phone
         auth.userName = s.name
-        if (auth.isAuthenticated) screen = Screen.HOME
     }
 
     // --- Cart / recipe browsing --------------------------------------------
@@ -163,7 +169,7 @@ class AppState {
 
     fun selectRecipe(id: String) {
         cart.selectRecipe(id)
-        screen = Screen.RECIPE
+        go(Screen.RECIPE)
     }
 
     fun toggleFav(id: String) = cart.toggleFav(id)
@@ -208,7 +214,7 @@ class AppState {
             district = location.selectedDistrict ?: "Юнусабад",
             point = point
         )
-        screen = Screen.TRACKING
+        go(Screen.TRACKING)
     }
 
     // --- Cooking mode ----------------------------------------------------
@@ -218,7 +224,7 @@ class AppState {
     var rating by cooking::rating
 
     fun startCooking() {
-        screen = Screen.COOKING
+        go(Screen.COOKING)
         cooking.cookingStepIdx = 0
         cooking.timerRunning = false
         cooking.timerSeconds = 0
@@ -254,25 +260,52 @@ class AppState {
     var pickerAddNew by location::pickerAddNew
     var addressesReturnTarget by location::addressesReturnTarget
 
-    fun go(s: Screen) { screen = s }
+    // --- Navigation primitives ----------------------------------------------
+    // All screen state lives in AppState rather than nav-entry-scoped view models, so a screen's
+    // content is always driven by current AppState fields regardless of whether its back-stack
+    // entry is a fresh push or a resumed one - that's what makes popOrPush() safe.
+
+    /** Ordinary forward navigation (push a new back-stack entry). */
+    private fun push(target: Screen) = navController.navigate(target.name)
+
+    /** Clears the whole back stack and lands on `target` as the sole entry, so the system back
+     *  button exits the app from there. Used for the bottom tabs and for auth/logout transitions
+     *  that must not be reachable again via back. */
+    private fun resetStackTo(target: Screen) {
+        navController.navigate(target.name) {
+            popUpTo(navController.graph.id) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    /** Returns to `target` if it's already on the back stack (e.g. confirming a picker opened
+     *  from an existing screen), otherwise pushes it fresh. */
+    private fun popOrPush(target: Screen) {
+        val onStack = navController.currentBackStack.value.any { it.destination.route == target.name }
+        if (onStack) navController.popBackStack(target.name, inclusive = false) else push(target)
+    }
+
+    fun go(s: Screen) {
+        if (s in TAB_ROOTS) resetStackTo(s) else popOrPush(s)
+    }
 
     fun openLocationPicker(backTarget: Screen, confirmTarget: Screen, addNew: Boolean = false) {
         location.beginPicker(backTarget, confirmTarget, addNew)
-        screen = Screen.DISTRICT
+        push(Screen.DISTRICT)
     }
 
     /** Opens the saved-addresses list (backed by the cached addresses) so the user can pick one. */
     fun openAddressList(returnTarget: Screen) {
         location.beginAddressList(returnTarget)
-        screen = Screen.ADDRESSES
+        push(Screen.ADDRESSES)
     }
 
     fun selectDistrict(name: String, point: Point? = null, fullAddress: String = "") {
-        screen = location.selectDistrict(name, point, fullAddress)
+        go(location.selectDistrict(name, point, fullAddress))
     }
 
     fun selectSavedAddress(address: SavedAddress) {
-        screen = location.selectSavedAddress(address)
+        go(location.selectSavedAddress(address))
     }
 
     fun removeAddress(address: SavedAddress) = location.removeAddress(address)

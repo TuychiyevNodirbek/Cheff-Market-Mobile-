@@ -1,6 +1,5 @@
 package uz.nodirbek.receiptdelivery.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,6 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.russhwolf.settings.SharedPreferencesSettings
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.delay
@@ -75,25 +78,6 @@ private val TAB_SCREENS = mapOf(
 
 private val SHOW_TAB_BAR_SCREENS = setOf(Screen.HOME, Screen.SEARCH, Screen.TRACKING, Screen.PROFILE)
 
-/** Mirrors each screen's on-screen back arrow. Null means the system default (exit app) applies. */
-private fun previousScreen(state: AppState): Screen? = when (state.screen) {
-    Screen.ONB2 -> Screen.ONB1
-    Screen.AUTH_PHONE -> Screen.ONB2
-    Screen.AUTH_OTP -> Screen.AUTH_PHONE
-    Screen.AUTH_PROFILE -> Screen.AUTH_OTP
-    Screen.DISTRICT -> state.pickerBackTarget
-    Screen.OFFZONE -> Screen.DISTRICT
-    Screen.SEARCH -> Screen.HOME
-    Screen.RECIPE -> Screen.HOME
-    Screen.CART -> Screen.RECIPE
-    Screen.CHECKOUT -> Screen.CART
-    Screen.COOKING -> Screen.RECIPE
-    Screen.ORDER_HISTORY -> Screen.PROFILE
-    Screen.ADDRESSES -> state.addressesReturnTarget
-    Screen.SETTINGS -> Screen.PROFILE
-    Screen.ONB1, Screen.HOME, Screen.TRACKING, Screen.PROFILE -> null
-}
-
 @Composable
 fun RecipeApp() {
     val isOnline by connectivityState()
@@ -106,14 +90,19 @@ fun RecipeApp() {
     val cartPrefs = remember {
         SharedPreferencesSettings(context.getSharedPreferences(cartPrefsName(), android.content.Context.MODE_PRIVATE))
     }
+    // Read once, synchronously, before the nav graph is built - decides the start destination
+    // below without ever flashing the onboarding screen for a returning, authenticated user.
+    val loadedAuth = remember { cartPrefs.loadAuth() }
+
+    val navController = rememberNavController()
     val state = remember {
-        AppState().apply {
+        AppState(navController).apply {
             cartPrefs.loadCartSnapshot()?.let { applyCartSnapshot(it) }
             orders.addAll(cartPrefs.loadOrders())
             val (addresses, activeId) = cartPrefs.loadAddresses()
             if (addresses.isNotEmpty()) applySavedAddresses(addresses, activeId)
             cartPrefs.loadLastGpsPoint()?.let { (lat, lon) -> lastGpsPoint = Point(lat, lon) }
-            applyAuthSnapshot(cartPrefs.loadAuth())
+            applyAuthSnapshot(loadedAuth)
             applySettingsSnapshot(cartPrefs.loadSettings())
         }
     }
@@ -161,46 +150,44 @@ fun RecipeApp() {
         }
     }
 
-    val target = previousScreen(state)
-    BackHandler(enabled = target != null) {
-        target?.let { state.go(it) }
-    }
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = backStackEntry?.destination?.route?.let { Screen.valueOf(it) }
 
     Box(
         Modifier
             .fillMaxSize()
-            .background(if (state.screen == Screen.COOKING) CookingBg else Surface)
+            .background(if (currentScreen == Screen.COOKING) CookingBg else Surface)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        when (state.screen) {
-            Screen.ONB1 -> Onboarding1Screen(state)
-            Screen.ONB2 -> Onboarding2Screen(state)
-            Screen.AUTH_PHONE -> AuthPhoneScreen(state)
-            Screen.AUTH_OTP -> AuthOtpScreen(state)
-            Screen.AUTH_PROFILE -> AuthProfileScreen(state)
-            Screen.DISTRICT -> DistrictSelectScreen(state)
-            Screen.OFFZONE -> OffZoneScreen(state)
-            Screen.HOME -> HomeScreen(state)
-            Screen.SEARCH -> SearchScreen(state)
-            Screen.RECIPE -> RecipeDetailScreen(state)
-            Screen.CART -> CartScreen(state)
-            Screen.CHECKOUT -> CheckoutScreen(state)
-            Screen.TRACKING -> TrackingScreen(state)
-            Screen.COOKING -> CookingScreen(state)
-            Screen.PROFILE -> ProfileScreen(state)
-            Screen.ORDER_HISTORY -> OrderHistoryScreen(state)
-            Screen.ADDRESSES -> AddressesScreen(state)
-            Screen.SETTINGS -> SettingsScreen(state)
+        NavHost(navController = navController, startDestination = if (loadedAuth.isAuthenticated) Screen.HOME.name else Screen.ONB1.name) {
+            composable(Screen.ONB1.name) { Onboarding1Screen(state) }
+            composable(Screen.ONB2.name) { Onboarding2Screen(state) }
+            composable(Screen.AUTH_PHONE.name) { AuthPhoneScreen(state) }
+            composable(Screen.AUTH_OTP.name) { AuthOtpScreen(state) }
+            composable(Screen.AUTH_PROFILE.name) { AuthProfileScreen(state) }
+            composable(Screen.DISTRICT.name) { DistrictSelectScreen(state) }
+            composable(Screen.OFFZONE.name) { OffZoneScreen(state) }
+            composable(Screen.HOME.name) { HomeScreen(state) }
+            composable(Screen.SEARCH.name) { SearchScreen(state) }
+            composable(Screen.RECIPE.name) { RecipeDetailScreen(state) }
+            composable(Screen.CART.name) { CartScreen(state) }
+            composable(Screen.CHECKOUT.name) { CheckoutScreen(state) }
+            composable(Screen.TRACKING.name) { TrackingScreen(state) }
+            composable(Screen.COOKING.name) { CookingScreen(state) }
+            composable(Screen.PROFILE.name) { ProfileScreen(state) }
+            composable(Screen.ORDER_HISTORY.name) { OrderHistoryScreen(state) }
+            composable(Screen.ADDRESSES.name) { AddressesScreen(state) }
+            composable(Screen.SETTINGS.name) { SettingsScreen(state) }
         }
-        if (state.screen in SHOW_TAB_BAR_SCREENS) {
-            BottomTabBar(state, modifier = Modifier.align(Alignment.BottomCenter))
+        if (currentScreen != null && currentScreen in SHOW_TAB_BAR_SCREENS) {
+            BottomTabBar(state, currentScreen, modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }
 
 @Composable
-private fun BottomTabBar(state: AppState, modifier: Modifier = Modifier) {
+private fun BottomTabBar(state: AppState, currentScreen: Screen?, modifier: Modifier = Modifier) {
     Row(
         modifier
             .fillMaxWidth()
@@ -209,7 +196,7 @@ private fun BottomTabBar(state: AppState, modifier: Modifier = Modifier) {
     ) {
         TAB_DEFS.forEach { (key, icon, name) ->
             val screen = TAB_SCREENS.getValue(key)
-            val active = state.screen == screen
+            val active = currentScreen == screen
             val interactionSource = remember { MutableInteractionSource() }
             Column(
                 Modifier

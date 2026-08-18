@@ -16,6 +16,10 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.multiplatform.settings)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.multiplatform.settings.test)
+        }
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -26,6 +30,7 @@ kotlin {
             implementation(libs.androidx.compose.ui.tooling.preview)
             implementation(libs.androidx.compose.material3)
             implementation(libs.androidx.compose.material.icons.core)
+            implementation(libs.androidx.navigation.compose)
             implementation(libs.yandex.mapkit)
         }
         val androidUnitTest by getting {
