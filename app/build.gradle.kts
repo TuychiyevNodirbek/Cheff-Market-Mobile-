@@ -14,6 +14,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.multiplatform.settings)
         }
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)

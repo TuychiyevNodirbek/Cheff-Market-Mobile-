@@ -48,6 +48,7 @@ import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
 import uz.nodirbek.receiptdelivery.ui.components.PrimaryButton
 import uz.nodirbek.receiptdelivery.ui.components.YandexMapView
+import uz.nodirbek.receiptdelivery.data.imageResFor
 import uz.nodirbek.receiptdelivery.data.money
 import uz.nodirbek.receiptdelivery.ui.theme.Amber
 import uz.nodirbek.receiptdelivery.ui.theme.Border
@@ -73,7 +74,7 @@ fun RecipeDetailScreen(state: AppState) {
                 Box(Modifier.fillMaxWidth().height(220.dp)) {
                     Box(Modifier.fillMaxSize().background(heroBrush2(recipe.heroColors)), contentAlignment = Alignment.Center) {
                         Image(
-                            painter = painterResource(recipe.imageRes),
+                            painter = painterResource(imageResFor(recipe.imageKey)),
                             contentDescription = recipe.name,
                             modifier = Modifier.fillMaxSize().padding(36.dp),
                             contentScale = ContentScale.Fit

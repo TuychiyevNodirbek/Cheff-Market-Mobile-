@@ -1,7 +1,6 @@
 package uz.nodirbek.receiptdelivery.data
 
-import android.content.SharedPreferences
-import androidx.core.content.edit
+import com.russhwolf.settings.Settings
 
 data class Order(
     val id: String,
@@ -19,20 +18,18 @@ private const val KEY_ORDERS = "orders"
 private const val FIELD_SEP = "|"
 private const val ORDER_SEP = "\n"
 
-fun SharedPreferences.saveOrders(orders: List<Order>) {
-    edit {
-        putString(
-            KEY_ORDERS,
-            orders.joinToString(ORDER_SEP) { o ->
-                listOf(o.id, o.recipeName, o.itemsSummary, o.totalLabel, o.dateLabel, o.statusLabel, o.district, o.lat, o.lon)
-                    .joinToString(FIELD_SEP)
-            }
-        )
-    }
+fun Settings.saveOrders(orders: List<Order>) {
+    putString(
+        KEY_ORDERS,
+        orders.joinToString(ORDER_SEP) { o ->
+            listOf(o.id, o.recipeName, o.itemsSummary, o.totalLabel, o.dateLabel, o.statusLabel, o.district, o.lat, o.lon)
+                .joinToString(FIELD_SEP)
+        }
+    )
 }
 
-fun SharedPreferences.loadOrders(): List<Order> {
-    val raw = getString(KEY_ORDERS, "") ?: ""
+fun Settings.loadOrders(): List<Order> {
+    val raw = getString(KEY_ORDERS, "")
     if (raw.isBlank()) return emptyList()
     return raw.split(ORDER_SEP).filter { it.isNotBlank() }.mapNotNull { line ->
         val parts = line.split(FIELD_SEP)

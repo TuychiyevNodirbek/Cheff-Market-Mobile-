@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.russhwolf.settings.SharedPreferencesSettings
 import com.yandex.mapkit.geometry.Point
 import kotlinx.coroutines.delay
 import uz.nodirbek.receiptdelivery.data.cartPrefsName
@@ -103,7 +104,7 @@ fun RecipeApp() {
 
     val context = LocalContext.current
     val cartPrefs = remember {
-        context.getSharedPreferences(cartPrefsName(), android.content.Context.MODE_PRIVATE)
+        SharedPreferencesSettings(context.getSharedPreferences(cartPrefsName(), android.content.Context.MODE_PRIVATE))
     }
     val state = remember {
         AppState().apply {

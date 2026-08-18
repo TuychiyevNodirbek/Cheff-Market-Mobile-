@@ -16,6 +16,7 @@ import uz.nodirbek.receiptdelivery.data.Recipe
 import uz.nodirbek.receiptdelivery.data.SavedAddress
 import uz.nodirbek.receiptdelivery.data.SettingsSnapshot
 import uz.nodirbek.receiptdelivery.data.StockStatus
+import uz.nodirbek.receiptdelivery.data.imageResFor
 import uz.nodirbek.receiptdelivery.data.money
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -308,7 +309,7 @@ class AppState {
     fun makeCard(r: Recipe): RecipeCard = RecipeCard(
         id = r.id, name = r.name, time = r.timeMinutes, baseServings = r.baseServings,
         priceLabel = money(r.basePrice), isFav = favs[r.id] ?: false, heroColors = r.heroColors,
-        imageRes = r.imageRes
+        imageRes = imageResFor(r.imageKey)
     )
 
     fun allRecipeCards(): List<RecipeCard> = RECIPES.values.map { makeCard(it) }

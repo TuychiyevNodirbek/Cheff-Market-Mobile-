@@ -1,7 +1,6 @@
 package uz.nodirbek.receiptdelivery.data
 
-import android.content.SharedPreferences
-import androidx.core.content.edit
+import com.russhwolf.settings.Settings
 
 data class CartSnapshot(
     val recipeId: String,
@@ -22,30 +21,28 @@ private const val KEY_ONLY_MISSING = "onlyMissing"
 
 fun cartPrefsName(): String = PREFS_NAME
 
-fun SharedPreferences.saveCartSnapshot(snapshot: CartSnapshot) {
-    edit {
-        putString(KEY_RECIPE_ID, snapshot.recipeId)
-        putInt(KEY_PORTIONS, snapshot.portions)
-        putString(KEY_CART_QTY, snapshot.cartQty.entries.joinToString(";") { "${it.key}:${it.value}" })
-        putString(KEY_CART_REMOVED, snapshot.cartRemoved.filterValues { it }.keys.joinToString(","))
-        putString(KEY_CART_SUBBED, snapshot.cartSubbed.entries.joinToString(";") { "${it.key}:${it.value}" })
-        putBoolean(KEY_ONLY_MISSING, snapshot.onlyMissing)
-    }
+fun Settings.saveCartSnapshot(snapshot: CartSnapshot) {
+    putString(KEY_RECIPE_ID, snapshot.recipeId)
+    putInt(KEY_PORTIONS, snapshot.portions)
+    putString(KEY_CART_QTY, snapshot.cartQty.entries.joinToString(";") { "${it.key}:${it.value}" })
+    putString(KEY_CART_REMOVED, snapshot.cartRemoved.filterValues { it }.keys.joinToString(","))
+    putString(KEY_CART_SUBBED, snapshot.cartSubbed.entries.joinToString(";") { "${it.key}:${it.value}" })
+    putBoolean(KEY_ONLY_MISSING, snapshot.onlyMissing)
 }
 
-fun SharedPreferences.loadCartSnapshot(): CartSnapshot? {
-    val recipeId = getString(KEY_RECIPE_ID, null) ?: return null
+fun Settings.loadCartSnapshot(): CartSnapshot? {
+    val recipeId = getStringOrNull(KEY_RECIPE_ID) ?: return null
     val portions = getInt(KEY_PORTIONS, 0)
-    val cartQty = (getString(KEY_CART_QTY, "") ?: "")
+    val cartQty = getString(KEY_CART_QTY, "")
         .split(";").filter { it.isNotBlank() }
         .mapNotNull { entry ->
             val parts = entry.split(":")
             if (parts.size == 2) parts[0] to (parts[1].toIntOrNull() ?: return@mapNotNull null) else null
         }.toMap()
-    val cartRemoved = (getString(KEY_CART_REMOVED, "") ?: "")
+    val cartRemoved = getString(KEY_CART_REMOVED, "")
         .split(",").filter { it.isNotBlank() }
         .associateWith { true }
-    val cartSubbed = (getString(KEY_CART_SUBBED, "") ?: "")
+    val cartSubbed = getString(KEY_CART_SUBBED, "")
         .split(";").filter { it.isNotBlank() }
         .mapNotNull { entry ->
             val parts = entry.split(":")

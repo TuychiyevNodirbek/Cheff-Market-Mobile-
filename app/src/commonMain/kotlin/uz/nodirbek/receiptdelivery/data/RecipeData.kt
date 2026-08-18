@@ -1,6 +1,7 @@
 package uz.nodirbek.receiptdelivery.data
 
-import uz.nodirbek.receiptdelivery.R
+import kotlin.math.abs
+import kotlin.math.roundToLong
 
 data class Step(
     val text: String,
@@ -28,7 +29,8 @@ data class Recipe(
     val rating: String,
     val reviews: Int,
     val heroColors: Pair<Long, Long>,
-    val imageRes: Int,
+    /** Platform-agnostic lookup key for the dish image; resolved to an actual drawable/asset per platform. */
+    val imageKey: String,
     val ingredients: List<Ingredient>,
     val steps: List<Step>
 ) {
@@ -66,7 +68,7 @@ val RECIPES: Map<String, Recipe> = listOf(
         rating = "4.8",
         reviews = 214,
         heroColors = 0xFFF0C9A0 to 0xFFE0A870,
-        imageRes = R.drawable.dish_lagman,
+        imageKey = "lagman",
         ingredients = listOf(
             Ingredient("beef", "Говядина", "г", 500, 32000, StockStatus.OK),
             Ingredient("noodles", "Лапша яичная", "г", 400, 12000, StockStatus.OK),
@@ -91,7 +93,7 @@ val RECIPES: Map<String, Recipe> = listOf(
         rating = "4.9",
         reviews = 356,
         heroColors = 0xFFE8B870 to 0xFFD19040,
-        imageRes = R.drawable.dish_plov,
+        imageKey = "plov",
         ingredients = listOf(
             Ingredient("rice", "Рис для плова", "г", 700, 14000, StockStatus.OK),
             Ingredient("beef2", "Говядина", "г", 600, 38000, StockStatus.OK),
@@ -115,7 +117,7 @@ val RECIPES: Map<String, Recipe> = listOf(
         rating = "4.6",
         reviews = 98,
         heroColors = 0xFFE89060 to 0xFFD06838,
-        imageRes = R.drawable.dish_shakshuka,
+        imageKey = "shakshuka",
         ingredients = listOf(
             Ingredient("eggs", "Яйца", "шт", 6, 9000, StockStatus.OK),
             Ingredient("tomato", "Томаты", "г", 400, 6000, StockStatus.OK),
@@ -138,7 +140,7 @@ val RECIPES: Map<String, Recipe> = listOf(
         rating = "4.7",
         reviews = 152,
         heroColors = 0xFFE8D0A0 to 0xFFC9A868,
-        imageRes = R.drawable.dish_manty,
+        imageKey = "manty",
         ingredients = listOf(
             Ingredient("flour", "Тесто (мука)", "г", 500, 4000, StockStatus.OK),
             Ingredient("lamb", "Говядина/баранина фарш", "г", 600, 34000, StockStatus.LOW),
@@ -154,7 +156,15 @@ val RECIPES: Map<String, Recipe> = listOf(
     )
 ).associateBy { it.id }
 
+/** Groups digits with a space every three places, e.g. 32000 -> "32 000". Multiplatform-safe (no java.text). */
 fun money(n: Number): String {
-    val rounded = Math.round(n.toDouble())
-    return String.format(java.util.Locale.US, "%,d", rounded).replace(',', ' ')
+    val rounded = n.toDouble().roundToLong()
+    val digits = abs(rounded).toString()
+    val sb = StringBuilder()
+    for ((i, c) in digits.withIndex()) {
+        val posFromEnd = digits.length - i
+        if (i != 0 && posFromEnd % 3 == 0) sb.append(' ')
+        sb.append(c)
+    }
+    return if (rounded < 0) "-$sb" else sb.toString()
 }
