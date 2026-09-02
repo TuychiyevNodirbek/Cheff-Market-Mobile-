@@ -29,7 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.russhwolf.settings.SharedPreferencesSettings
-import com.yandex.mapkit.geometry.Point
+import uz.nodirbek.receiptdelivery.geo.GeoPoint
 import kotlinx.coroutines.delay
 import uz.nodirbek.receiptdelivery.data.cartPrefsName
 import uz.nodirbek.receiptdelivery.data.loadAddresses
@@ -101,7 +101,7 @@ fun RecipeApp() {
             orders.addAll(cartPrefs.loadOrders())
             val (addresses, activeId) = cartPrefs.loadAddresses()
             if (addresses.isNotEmpty()) applySavedAddresses(addresses, activeId)
-            cartPrefs.loadLastGpsPoint()?.let { (lat, lon) -> lastGpsPoint = Point(lat, lon) }
+            cartPrefs.loadLastGpsPoint()?.let { (lat, lon) -> lastGpsPoint = GeoPoint(lat, lon) }
             applyAuthSnapshot(loadedAuth)
             applySettingsSnapshot(cartPrefs.loadSettings())
         }

@@ -55,7 +55,7 @@ import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
 import uz.nodirbek.receiptdelivery.ui.components.PlaceholderBlock
 import uz.nodirbek.receiptdelivery.ui.components.PrimaryButton
-import uz.nodirbek.receiptdelivery.ui.components.TASHKENT_CENTER
+import uz.nodirbek.receiptdelivery.geo.TASHKENT_CENTER
 import uz.nodirbek.receiptdelivery.ui.components.YandexLocationPickerMap
 import uz.nodirbek.receiptdelivery.ui.theme.Border
 import uz.nodirbek.receiptdelivery.ui.theme.CardWhite

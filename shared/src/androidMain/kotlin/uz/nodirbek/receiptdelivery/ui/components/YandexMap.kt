@@ -16,22 +16,27 @@ import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.mapview.MapView
 import kotlinx.coroutines.delay
 import java.lang.ref.WeakReference
+import uz.nodirbek.receiptdelivery.geo.GeoPoint
+import uz.nodirbek.receiptdelivery.geo.TASHKENT_CENTER
 
-/** Center of Tashkent, used as the default map focus for all districts. */
-val TASHKENT_CENTER = Point(41.311081, 69.240562)
+private fun GeoPoint.toYandexPoint() = Point(latitude, longitude)
+private fun Point.toGeoPoint() = GeoPoint(latitude, longitude)
 
 /**
  * A Yandex MapKit map view wired into Compose lifecycle.
  * Only one instance is ever visible at a time in this app (single-screen navigation),
  * so tying MapKitFactory's start/stop to this composable's own presence in composition
  * mirrors the standard Activity onStart/onStop pairing MapKit expects.
+ *
+ * Takes/returns GeoPoint (not Yandex's own Point) at its public boundary - callers and the
+ * shared state layer stay map-SDK-agnostic; the Yandex-specific conversion lives only here.
  */
 @Composable
 fun YandexMapView(
     modifier: Modifier = Modifier,
-    center: Point = TASHKENT_CENTER,
+    center: GeoPoint = TASHKENT_CENTER,
     zoom: Float = 12f,
-    markerAt: Point? = null
+    markerAt: GeoPoint? = null
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
@@ -49,9 +54,9 @@ fun YandexMapView(
         modifier = modifier.fillMaxSize(),
         factory = { mapView },
         update = { view ->
-            view.map.move(CameraPosition(center, zoom, 0f, 0f))
+            view.map.move(CameraPosition(center.toYandexPoint(), zoom, 0f, 0f))
             view.map.mapObjects.clear()
-            markerAt?.let { point -> view.map.mapObjects.addPlacemark(point) }
+            markerAt?.let { point -> view.map.mapObjects.addPlacemark(point.toYandexPoint()) }
         }
     )
 }
@@ -70,25 +75,25 @@ fun YandexMapView(
 @Composable
 fun YandexLocationPickerMap(
     modifier: Modifier = Modifier,
-    initialCenter: Point = TASHKENT_CENTER,
+    initialCenter: GeoPoint = TASHKENT_CENTER,
     initialZoom: Float = 13f,
     locationPermissionGranted: Boolean,
     locateMeRequest: Int,
-    onCameraTargetChanged: (Point) -> Unit,
-    onUserLocationFound: (Point) -> Unit = {},
+    onCameraTargetChanged: (GeoPoint) -> Unit,
+    onUserLocationFound: (GeoPoint) -> Unit = {},
     onUserLocationUnavailable: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
     val userLocationLayer = remember { MapKitFactory.getInstance().createUserLocationLayer(mapView.mapWindow) }
     val cameraListenerRef = remember {
-        WeakReference(CameraListener { _, position, _, _ -> onCameraTargetChanged(position.target) })
+        WeakReference(CameraListener { _, position, _, _ -> onCameraTargetChanged(position.target.toGeoPoint()) })
     }
 
     DisposableEffect(mapView) {
         MapKitFactory.getInstance().onStart()
         mapView.onStart()
-        mapView.map.move(CameraPosition(initialCenter, initialZoom, 0f, 0f))
+        mapView.map.move(CameraPosition(initialCenter.toYandexPoint(), initialZoom, 0f, 0f))
         mapView.map.addCameraListener(cameraListenerRef)
         onDispose {
             mapView.map.removeCameraListener(cameraListenerRef)
@@ -119,7 +124,7 @@ fun YandexLocationPickerMap(
                     Animation(Animation.Type.SMOOTH, 0.6f),
                     null
                 )
-                onUserLocationFound(position.target)
+                onUserLocationFound(position.target.toGeoPoint())
             } else {
                 onUserLocationUnavailable()
             }

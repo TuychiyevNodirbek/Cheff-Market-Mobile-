@@ -4,21 +4,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.yandex.mapkit.geometry.Point
+import kotlin.random.Random
 import uz.nodirbek.receiptdelivery.data.DISTRICT_COORDS
 import uz.nodirbek.receiptdelivery.data.OFF_ZONE_DISTRICT
 import uz.nodirbek.receiptdelivery.data.SavedAddress
+import uz.nodirbek.receiptdelivery.geo.GeoPoint
+import uz.nodirbek.receiptdelivery.geo.TASHKENT_CENTER
 
-/** District/address selection and the location-picker flow. Stays androidMain because it's expressed
- *  in terms of Yandex MapKit's Point (map integration is a later phase). Methods that resolve to a
- *  screen transition (selectDistrict/selectSavedAddress) return the target Screen instead of setting
- *  it directly - the root AppState performs the actual navigation. */
+/** District/address selection and the location-picker flow. Expressed purely in terms of
+ *  GeoPoint (lat/lon), not any specific map SDK's point type - the conversion to/from a map
+ *  SDK's own type happens only at the UI boundary (see ui/components/YandexMap.kt on Android).
+ *  Methods that resolve to a screen transition (selectDistrict/selectSavedAddress) return the
+ *  target Screen instead of setting it directly - the root AppState performs the actual
+ *  navigation. */
 class LocationState {
     var selectedDistrict by mutableStateOf<String?>(null)
-    var deliveryPoint by mutableStateOf<Point?>(null)
+    var deliveryPoint by mutableStateOf<GeoPoint?>(null)
     val savedAddresses = mutableStateListOf<SavedAddress>()
     var activeAddressId by mutableStateOf<String?>(null)
-    var lastGpsPoint by mutableStateOf<Point?>(null)
+    var lastGpsPoint by mutableStateOf<GeoPoint?>(null)
 
     /** Where the location picker's back arrow / system back should return to. */
     var pickerBackTarget by mutableStateOf(Screen.ONB2)
@@ -43,9 +47,9 @@ class LocationState {
     }
 
     /** Resolves the district, saves/updates the address if applicable, and returns where to navigate. */
-    fun selectDistrict(name: String, point: Point?, fullAddress: String): Screen {
+    fun selectDistrict(name: String, point: GeoPoint?, fullAddress: String): Screen {
         if (name == OFF_ZONE_DISTRICT) return Screen.OFFZONE
-        val resolved = point ?: DISTRICT_COORDS[name]?.let { Point(it.first, it.second) }
+        val resolved = point ?: DISTRICT_COORDS[name]?.let { GeoPoint(it.first, it.second) }
         selectedDistrict = name
         resolved?.let { p ->
             deliveryPoint = p
@@ -54,7 +58,7 @@ class LocationState {
         return pickerConfirmTarget
     }
 
-    private fun upsertAddress(district: String, point: Point, fullAddress: String, addNew: Boolean) {
+    private fun upsertAddress(district: String, point: GeoPoint, fullAddress: String, addNew: Boolean) {
         val existing = if (addNew) null else savedAddresses.find { it.district == district }
         if (existing != null) {
             savedAddresses[savedAddresses.indexOf(existing)] =
@@ -62,7 +66,7 @@ class LocationState {
             activeAddressId = existing.id
         } else {
             val address = SavedAddress(
-                id = "addr-${System.currentTimeMillis()}",
+                id = "addr-${Random.nextLong()}",
                 district = district,
                 lat = point.latitude,
                 lon = point.longitude,
@@ -76,7 +80,7 @@ class LocationState {
     fun selectSavedAddress(address: SavedAddress): Screen {
         activeAddressId = address.id
         selectedDistrict = address.district
-        deliveryPoint = Point(address.lat, address.lon)
+        deliveryPoint = GeoPoint(address.lat, address.lon)
         return addressesReturnTarget
     }
 
@@ -87,8 +91,8 @@ class LocationState {
         }
     }
 
-    fun deliveryDisplayPoint(): Point =
-        deliveryPoint ?: DISTRICT_COORDS[selectedDistrict]?.let { Point(it.first, it.second) } ?: Point(41.311081, 69.240562)
+    fun deliveryDisplayPoint(): GeoPoint =
+        deliveryPoint ?: DISTRICT_COORDS[selectedDistrict]?.let { GeoPoint(it.first, it.second) } ?: TASHKENT_CENTER
 
     fun activeAddress(): SavedAddress? = savedAddresses.find { it.id == activeAddressId }
 
@@ -102,7 +106,7 @@ class LocationState {
         activeAddressId = activeId ?: list.firstOrNull()?.id
         savedAddresses.find { it.id == activeAddressId }?.let { addr ->
             selectedDistrict = addr.district
-            deliveryPoint = Point(addr.lat, addr.lon)
+            deliveryPoint = GeoPoint(addr.lat, addr.lon)
         }
     }
 }

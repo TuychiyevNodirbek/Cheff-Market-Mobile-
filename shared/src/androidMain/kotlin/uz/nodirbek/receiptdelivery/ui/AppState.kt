@@ -3,7 +3,6 @@ package uz.nodirbek.receiptdelivery.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
-import com.yandex.mapkit.geometry.Point
 import uz.nodirbek.receiptdelivery.data.AuthSnapshot
 import uz.nodirbek.receiptdelivery.data.CartSnapshot
 import uz.nodirbek.receiptdelivery.data.Order
@@ -12,10 +11,7 @@ import uz.nodirbek.receiptdelivery.data.SavedAddress
 import uz.nodirbek.receiptdelivery.data.SettingsSnapshot
 import uz.nodirbek.receiptdelivery.data.Step
 import uz.nodirbek.receiptdelivery.data.money
-
-enum class Screen {
-    ONB1, ONB2, AUTH_PHONE, AUTH_OTP, AUTH_PROFILE, DISTRICT, OFFZONE, HOME, SEARCH, RECIPE, CART, CHECKOUT, TRACKING, COOKING, PROFILE, ORDER_HISTORY, ADDRESSES, SETTINGS
-}
+import uz.nodirbek.receiptdelivery.geo.GeoPoint
 
 val LANGUAGE_OPTIONS = listOf("ru" to "Русский", "uz" to "O'zbekcha")
 
@@ -54,8 +50,6 @@ data class RecipeCard(
     val imageRes: Int
 )
 
-data class OrderStatusStep(val label: String, val active: Boolean, val index: Int)
-
 val TAB_DEFS = listOf(
     Triple("home", "🏠", "Рецепты"),
     Triple("search", "🔍", "Поиск"),
@@ -76,8 +70,6 @@ val PAYMENT_OPTIONS = listOf(
     "uzcard" to "Uzcard/Humo",
     "cash" to "Наличные"
 )
-
-val STATUS_LABELS = listOf("Принят", "Собирается", "В пути", "Доставлен")
 
 /** Bottom-tab destinations always behave as a fresh stack root: back exits the app from any of
  *  them, and re-visiting one never grows the stack. Since all screen state lives in AppState
@@ -196,7 +188,7 @@ class AppState(private val navController: NavHostController) {
     fun mapLabel(): String = order.mapLabel()
     fun advanceOrderStatus() = order.advanceOrderStatus()
     fun currentOrderId(): String = order.currentOrderId()
-    fun currentOrderPoint(): Point = order.currentOrderPoint(location.deliveryDisplayPoint())
+    fun currentOrderPoint(): GeoPoint = order.currentOrderPoint(location.deliveryDisplayPoint())
 
     fun placeOrder() {
         val itemCount = cart.buildCartRows().size
@@ -294,7 +286,7 @@ class AppState(private val navController: NavHostController) {
         push(Screen.ADDRESSES)
     }
 
-    fun selectDistrict(name: String, point: Point? = null, fullAddress: String = "") {
+    fun selectDistrict(name: String, point: GeoPoint? = null, fullAddress: String = "") {
         go(location.selectDistrict(name, point, fullAddress))
     }
 
@@ -303,7 +295,7 @@ class AppState(private val navController: NavHostController) {
     }
 
     fun removeAddress(address: SavedAddress) = location.removeAddress(address)
-    fun deliveryDisplayPoint(): Point = location.deliveryDisplayPoint()
+    fun deliveryDisplayPoint(): GeoPoint = location.deliveryDisplayPoint()
     fun activeAddress(): SavedAddress? = location.activeAddress()
     fun deliveryAddressLabel(): String = location.deliveryAddressLabel()
     fun applySavedAddresses(list: List<SavedAddress>, activeId: String?) = location.applySavedAddresses(list, activeId)
