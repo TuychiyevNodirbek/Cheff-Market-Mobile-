@@ -3,6 +3,7 @@ package uz.nodirbek.receiptdelivery.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
+import org.jetbrains.compose.resources.DrawableResource
 import uz.nodirbek.receiptdelivery.data.AuthSnapshot
 import uz.nodirbek.receiptdelivery.data.CartSnapshot
 import uz.nodirbek.receiptdelivery.data.Order
@@ -47,7 +48,7 @@ data class RecipeCard(
     val priceLabel: String,
     val isFav: Boolean,
     val heroColors: Pair<Long, Long>,
-    val imageRes: Int
+    val imageRes: DrawableResource
 )
 
 val TAB_DEFS = listOf(

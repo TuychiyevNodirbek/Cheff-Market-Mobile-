@@ -12,10 +12,9 @@ import uz.nodirbek.receiptdelivery.data.imageResFor
 import uz.nodirbek.receiptdelivery.data.money
 import uz.nodirbek.receiptdelivery.ui.theme.Amber
 import uz.nodirbek.receiptdelivery.ui.theme.Green
+import kotlin.math.roundToInt
 
-/** Recipe selection, portion scaling, favorites/search, and cart contents/pricing.
- *  Stays androidMain (not commonMain) because RecipeCard/ScaledIngredient carry an
- *  androidx.compose.ui.graphics.Color, and makeCard() resolves an Android drawable id. */
+/** Recipe selection, portion scaling, favorites/search, and cart contents/pricing. */
 class CartState {
     var portions by mutableStateOf(4)
     var recipeId by mutableStateOf("lagman")
@@ -47,7 +46,7 @@ class CartState {
     fun scaledIngredients(): List<ScaledIngredient> {
         val factor = scaleFactor()
         return recipe.ingredients.map { ing ->
-            val qty = Math.round(ing.baseQty * factor).toInt()
+            val qty = (ing.baseQty * factor).roundToInt()
             val (label, color) = when (ing.status) {
                 StockStatus.OK -> "В наличии" to Green
                 StockStatus.LOW -> "Осталось мало" to Amber
@@ -69,8 +68,8 @@ class CartState {
             .filter { cartRemoved[it.key] != true }
             .map { ing ->
                 val count = cartQty[ing.key] ?: 1
-                val qty = Math.round(ing.baseQty * factor * count).toInt()
-                val price = Math.round(ing.pricePerBase * factor * count).toInt()
+                val qty = (ing.baseQty * factor * count).roundToInt()
+                val price = (ing.pricePerBase * factor * count).roundToInt()
                 val substituted = (cartSubbed[ing.key] == true) && ing.status == StockStatus.SUBSTITUTED
                 CartRow(
                     key = ing.key,

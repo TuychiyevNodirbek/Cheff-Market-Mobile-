@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,10 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.russhwolf.settings.SharedPreferencesSettings
 import uz.nodirbek.receiptdelivery.geo.GeoPoint
 import kotlinx.coroutines.delay
-import uz.nodirbek.receiptdelivery.data.cartPrefsName
 import uz.nodirbek.receiptdelivery.data.loadAddresses
 import uz.nodirbek.receiptdelivery.data.loadAuth
 import uz.nodirbek.receiptdelivery.data.loadCartSnapshot
@@ -86,10 +83,7 @@ fun RecipeApp() {
         return
     }
 
-    val context = LocalContext.current
-    val cartPrefs = remember {
-        SharedPreferencesSettings(context.getSharedPreferences(cartPrefsName(), android.content.Context.MODE_PRIVATE))
-    }
+    val cartPrefs = rememberPlatformSettings()
     // Read once, synchronously, before the nav graph is built - decides the start destination
     // below without ever flashing the onboarding screen for a returning, authenticated user.
     val loadedAuth = remember { cartPrefs.loadAuth() }

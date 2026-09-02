@@ -21,12 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uz.nodirbek.receiptdelivery.ui.AppState
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
+import uz.nodirbek.receiptdelivery.ui.components.rememberPhoneDialer
 import uz.nodirbek.receiptdelivery.ui.DIETARY_OPTIONS
 import uz.nodirbek.receiptdelivery.ui.LANGUAGE_OPTIONS
 import uz.nodirbek.receiptdelivery.ui.PAYMENT_OPTIONS
@@ -67,7 +67,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(state: AppState) {
-    val context = LocalContext.current
+    val dialPhone = rememberPhoneDialer()
 
     Column(Modifier.fillMaxSize().background(Surface)) {
         Row(
@@ -183,8 +183,7 @@ fun SettingsScreen(state: AppState) {
                             Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:$SUPPORT_PHONE"))
-                                    context.startActivity(intent)
+                                    dialPhone(SUPPORT_PHONE)
                                 }
                                 .padding(horizontal = 12.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,

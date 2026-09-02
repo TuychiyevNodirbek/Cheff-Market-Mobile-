@@ -1,10 +1,5 @@
 package uz.nodirbek.receiptdelivery.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.location.Geocoder
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,23 +35,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import uz.nodirbek.receiptdelivery.data.DISTRICTS
 import uz.nodirbek.receiptdelivery.data.nearestDistrict
 import uz.nodirbek.receiptdelivery.ui.AppState
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
+import uz.nodirbek.receiptdelivery.ui.components.LocationPickerMap
 import uz.nodirbek.receiptdelivery.ui.components.PlaceholderBlock
 import uz.nodirbek.receiptdelivery.ui.components.PrimaryButton
+import uz.nodirbek.receiptdelivery.ui.components.rememberLocationPermissionState
+import uz.nodirbek.receiptdelivery.ui.components.reverseGeocodeAddress
 import uz.nodirbek.receiptdelivery.geo.TASHKENT_CENTER
-import uz.nodirbek.receiptdelivery.ui.components.YandexLocationPickerMap
 import uz.nodirbek.receiptdelivery.ui.theme.Border
 import uz.nodirbek.receiptdelivery.ui.theme.CardWhite
 import uz.nodirbek.receiptdelivery.ui.theme.Orange
@@ -64,35 +57,18 @@ import uz.nodirbek.receiptdelivery.ui.theme.Surface
 import uz.nodirbek.receiptdelivery.ui.theme.TextDark
 import uz.nodirbek.receiptdelivery.ui.theme.TextMuted
 
-private fun hasLocationPermission(context: android.content.Context): Boolean {
-    val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-    val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
-    return fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED
-}
-
-/** Reverse-geocodes a point into a human-readable address line, or null if unavailable. */
-private suspend fun reverseGeocodeAddress(context: android.content.Context, lat: Double, lon: Double): String? =
-    withContext(Dispatchers.IO) {
-        try {
-            @Suppress("DEPRECATION")
-            val results = Geocoder(context, java.util.Locale("ru")).getFromLocation(lat, lon, 1)
-            results?.firstOrNull()?.let { addr ->
-                addr.getAddressLine(0)
-                    ?: listOfNotNull(addr.thoroughfare, addr.subThoroughfare, addr.locality)
-                        .joinToString(", ")
-                        .ifBlank { null }
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
 @Composable
 fun DistrictSelectScreen(state: AppState) {
-    val context = LocalContext.current
-    var hasPermission by remember { mutableStateOf(hasLocationPermission(context)) }
     var locateRequest by remember { mutableIntStateOf(0) }
     var locatingFailed by remember { mutableStateOf(false) }
+    val locationPermission = rememberLocationPermissionState { granted ->
+        if (granted) {
+            locatingFailed = false
+            locateRequest++
+        } else {
+            locatingFailed = true
+        }
+    }
     val startCenter = remember {
         state.deliveryPoint ?: state.lastGpsPoint ?: TASHKENT_CENTER
     }
@@ -103,49 +79,35 @@ fun DistrictSelectScreen(state: AppState) {
     var addressEditedByUser by remember { mutableStateOf(addressText.isNotBlank()) }
     var geocoding by remember { mutableStateOf(false) }
 
-    // Auto-fill the address text from Yandex-backed reverse geocoding as the pin settles,
-    // unless the user has already typed/edited it themselves.
+    // Auto-fill the address text from reverse geocoding as the pin settles, unless the user
+    // has already typed/edited it themselves.
     LaunchedEffect(cameraTarget) {
         delay(600)
         if (addressEditedByUser) return@LaunchedEffect
         geocoding = true
-        val resolved = reverseGeocodeAddress(context, cameraTarget.latitude, cameraTarget.longitude)
+        val resolved = reverseGeocodeAddress(cameraTarget.latitude, cameraTarget.longitude)
         geocoding = false
         if (!addressEditedByUser && !resolved.isNullOrBlank()) {
             addressText = resolved
         }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { results ->
-        if (results.values.any { it }) {
-            hasPermission = true
-            locatingFailed = false
-            locateRequest++
-        } else {
-            locatingFailed = true
-        }
-    }
-
     fun locateMe() {
-        if (hasPermission) {
+        if (locationPermission.granted) {
             locatingFailed = false
             locateRequest++
         } else {
-            permissionLauncher.launch(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            )
+            locationPermission.request()
         }
     }
 
     val resolvedDistrict = nearestDistrict(cameraTarget.latitude, cameraTarget.longitude)
 
     Box(Modifier.fillMaxSize().background(Surface)) {
-        YandexLocationPickerMap(
+        LocationPickerMap(
             modifier = Modifier.fillMaxSize(),
             initialCenter = startCenter,
-            locationPermissionGranted = hasPermission,
+            locationPermissionGranted = locationPermission.granted,
             locateMeRequest = locateRequest,
             onCameraTargetChanged = { cameraTarget = it },
             onUserLocationFound = { point -> state.lastGpsPoint = point },

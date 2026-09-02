@@ -33,7 +33,7 @@ import uz.nodirbek.receiptdelivery.ui.components.BackButton
 import uz.nodirbek.receiptdelivery.ui.components.IconTapButton
 import uz.nodirbek.receiptdelivery.ui.components.PlaceholderBlock
 import uz.nodirbek.receiptdelivery.ui.components.PrimaryButton
-import uz.nodirbek.receiptdelivery.ui.components.YandexMapView
+import uz.nodirbek.receiptdelivery.ui.components.DeliveryMap
 import uz.nodirbek.receiptdelivery.ui.theme.Border
 import uz.nodirbek.receiptdelivery.ui.theme.CardWhite
 import uz.nodirbek.receiptdelivery.ui.theme.CookingBg
@@ -90,7 +90,7 @@ fun TrackingScreen(state: AppState) {
                     .padding(top = 16.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(16.dp))
             ) {
-                YandexMapView(center = point, zoom = 13f, markerAt = point)
+                DeliveryMap(center = point, zoom = 13f, markerAt = point)
             }
         } else {
             PlaceholderBlock(

@@ -37,7 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,7 +47,7 @@ import uz.nodirbek.receiptdelivery.ui.SLOT_OPTIONS
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
 import uz.nodirbek.receiptdelivery.ui.components.PrimaryButton
-import uz.nodirbek.receiptdelivery.ui.components.YandexMapView
+import uz.nodirbek.receiptdelivery.ui.components.DeliveryMap
 import uz.nodirbek.receiptdelivery.data.imageResFor
 import uz.nodirbek.receiptdelivery.data.money
 import uz.nodirbek.receiptdelivery.ui.theme.Amber
@@ -366,7 +366,7 @@ fun CheckoutScreen(state: AppState) {
                             .padding(top = 8.dp)
                             .clip(RoundedCornerShape(14.dp))
                     ) {
-                        YandexMapView(center = addressPoint, zoom = 15f, markerAt = addressPoint)
+                        DeliveryMap(center = addressPoint, zoom = 15f, markerAt = addressPoint)
                     }
                 }
             }

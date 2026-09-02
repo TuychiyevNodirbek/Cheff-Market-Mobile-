@@ -18,9 +18,13 @@ private fun ConnectivityManager.hasInternet(): Boolean {
         capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }
 
-/** Tracks live internet availability, updating as the device connects/disconnects. */
+private fun Context.isInternetAvailable(): Boolean {
+    val connectivityManager = getSystemService<ConnectivityManager>() ?: return false
+    return connectivityManager.hasInternet()
+}
+
 @Composable
-fun connectivityState(): State<Boolean> {
+actual fun connectivityState(): State<Boolean> {
     val context = LocalContext.current
     return produceState(initialValue = context.isInternetAvailable(), context) {
         val connectivityManager = context.getSystemService<ConnectivityManager>() ?: return@produceState
@@ -43,9 +47,4 @@ fun connectivityState(): State<Boolean> {
         connectivityManager.registerNetworkCallback(request, callback)
         awaitDispose { connectivityManager.unregisterNetworkCallback(callback) }
     }
-}
-
-fun Context.isInternetAvailable(): Boolean {
-    val connectivityManager = getSystemService<ConnectivityManager>() ?: return false
-    return connectivityManager.hasInternet()
 }

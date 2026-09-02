@@ -12,11 +12,32 @@ kotlin {
         }
     }
 
+    // UNVERIFIED on this machine: Kotlin/Native's iOS backend only runs on macOS, so these
+    // targets have never been compiled - see docs/ios-phase-plan.md. Written from the Gradle
+    // DSL docs, not from a successful build.
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "shared"
+            isStatic = true
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
             implementation(libs.multiplatform.settings)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.androidx.navigation.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -26,13 +47,6 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.lifecycle.runtime.ktx)
             implementation(libs.androidx.activity.compose)
-            implementation(project.dependencies.platform(libs.androidx.compose.bom))
-            implementation(libs.androidx.compose.ui)
-            implementation(libs.androidx.compose.ui.graphics)
-            implementation(libs.androidx.compose.ui.tooling.preview)
-            implementation(libs.androidx.compose.material3)
-            implementation(libs.androidx.compose.material.icons.core)
-            implementation(libs.androidx.navigation.compose)
             implementation(libs.yandex.mapkit)
         }
         val androidUnitTest by getting {
@@ -41,7 +55,14 @@ kotlin {
                 implementation(libs.kotlin.test)
             }
         }
+        // iosMain already exists here via the default Kotlin hierarchy template
+        // (auto-created because iosX64/iosArm64/iosSimulatorArm64 are declared above) -
+        // no manual dependsOn() wiring needed.
     }
+}
+
+compose.resources {
+    packageOfResClass = "uz.nodirbek.receiptdelivery.shared.resources"
 }
 
 android {
