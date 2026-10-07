@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -38,6 +39,13 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.kotlinx.datetime)
             implementation(libs.androidx.navigation.compose)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -48,6 +56,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.ktx)
             implementation(libs.androidx.activity.compose)
             implementation(libs.yandex.mapkit)
+            implementation(libs.ktor.client.okhttp)
         }
         val androidUnitTest by getting {
             dependencies {
@@ -55,9 +64,14 @@ kotlin {
                 implementation(libs.kotlin.test)
             }
         }
-        // iosMain already exists here via the default Kotlin hierarchy template
-        // (auto-created because iosX64/iosArm64/iosSimulatorArm64 are declared above) -
-        // no manual dependsOn() wiring needed.
+        // iosMain exists via the default Kotlin hierarchy template only when the iOS
+        // targets above actually register, which Kotlin/Native limits to macOS hosts -
+        // guard the lookup so Windows/Linux configuration doesn't fail.
+        findByName("iosMain")?.apply {
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
+        }
     }
 }
 
@@ -86,4 +100,6 @@ android {
 
 dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.chucker)
+    releaseImplementation(libs.chucker.no.op)
 }

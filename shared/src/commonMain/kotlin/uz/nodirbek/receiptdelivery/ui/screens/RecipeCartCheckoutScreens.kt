@@ -31,6 +31,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,13 +42,45 @@ import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.back
+import uz.nodirbek.receiptdelivery.shared.resources.cancel
+import uz.nodirbek.receiptdelivery.shared.resources.cart_title
+import uz.nodirbek.receiptdelivery.shared.resources.change
+import uz.nodirbek.receiptdelivery.shared.resources.checkout_title
+import uz.nodirbek.receiptdelivery.shared.resources.comment_placeholder
+import uz.nodirbek.receiptdelivery.shared.resources.comment_to_courier
+import uz.nodirbek.receiptdelivery.shared.resources.composition
+import uz.nodirbek.receiptdelivery.shared.resources.cooking_steps_label
+import uz.nodirbek.receiptdelivery.shared.resources.delivery
+import uz.nodirbek.receiptdelivery.shared.resources.delivery_address_label
+import uz.nodirbek.receiptdelivery.shared.resources.delivery_slot_label
+import uz.nodirbek.receiptdelivery.shared.resources.ingredients_cost
+import uz.nodirbek.receiptdelivery.shared.resources.items_label
+import uz.nodirbek.receiptdelivery.shared.resources.minutes_short
+import uz.nodirbek.receiptdelivery.shared.resources.order_ingredients
+import uz.nodirbek.receiptdelivery.shared.resources.pay_and_order
+import uz.nodirbek.receiptdelivery.shared.resources.payment_method_label
+import uz.nodirbek.receiptdelivery.shared.resources.placing_order
+import uz.nodirbek.receiptdelivery.shared.resources.place_order_label
+import uz.nodirbek.receiptdelivery.shared.resources.portions
+import uz.nodirbek.receiptdelivery.shared.resources.remove_have_at_home
+import uz.nodirbek.receiptdelivery.shared.resources.show_only_missing
+import uz.nodirbek.receiptdelivery.shared.resources.start_cooking_label
+import uz.nodirbek.receiptdelivery.shared.resources.steps_count
+import uz.nodirbek.receiptdelivery.shared.resources.substituted_note
+import uz.nodirbek.receiptdelivery.shared.resources.sum
+import uz.nodirbek.receiptdelivery.shared.resources.total_label
 import uz.nodirbek.receiptdelivery.ui.AppState
-import uz.nodirbek.receiptdelivery.ui.PAYMENT_OPTIONS
-import uz.nodirbek.receiptdelivery.ui.SLOT_OPTIONS
+import uz.nodirbek.receiptdelivery.ui.paymentOptions
+import uz.nodirbek.receiptdelivery.ui.slotOptions
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
 import uz.nodirbek.receiptdelivery.ui.components.PrimaryButton
 import uz.nodirbek.receiptdelivery.ui.components.DeliveryMap
+import uz.nodirbek.receiptdelivery.ui.components.RecipeDetailSkeleton
 import uz.nodirbek.receiptdelivery.data.imageResFor
 import uz.nodirbek.receiptdelivery.data.money
 import uz.nodirbek.receiptdelivery.ui.theme.Amber
@@ -68,17 +101,40 @@ private fun heroBrush2(colors: Pair<Long, Long>) = Brush.linearGradient(
 @Composable
 fun RecipeDetailScreen(state: AppState) {
     val recipe = state.recipe
+    if (recipe.name.isBlank()) {
+        if (state.recipesError != null) {
+            Box(Modifier.fillMaxSize().background(Surface), contentAlignment = Alignment.Center) {
+                Text(state.recipesError!!, fontSize = 14.sp, color = TextMuted)
+            }
+        } else {
+            Box(Modifier.fillMaxSize().background(Surface)) {
+                RecipeDetailSkeleton()
+            }
+        }
+        return
+    }
     Box(Modifier.fillMaxSize().background(Surface)) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 100.dp)) {
             item {
                 Box(Modifier.fillMaxWidth().height(220.dp)) {
                     Box(Modifier.fillMaxSize().background(heroBrush2(recipe.heroColors)), contentAlignment = Alignment.Center) {
-                        Image(
-                            painter = painterResource(imageResFor(recipe.imageKey)),
-                            contentDescription = recipe.name,
-                            modifier = Modifier.fillMaxSize().padding(36.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        if (recipe.imageUrl != null) {
+                            AsyncImage(
+                                model = recipe.imageUrl,
+                                contentDescription = recipe.name,
+                                modifier = Modifier.fillMaxSize().padding(36.dp),
+                                contentScale = ContentScale.Fit,
+                                placeholder = painterResource(imageResFor(recipe.imageKey)),
+                                error = painterResource(imageResFor(recipe.imageKey))
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(imageResFor(recipe.imageKey)),
+                                contentDescription = recipe.name,
+                                modifier = Modifier.fillMaxSize().padding(36.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
                     }
                     Box(
                         Modifier
@@ -92,7 +148,7 @@ fun RecipeDetailScreen(state: AppState) {
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
+                            contentDescription = stringResource(Res.string.back),
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
@@ -103,7 +159,8 @@ fun RecipeDetailScreen(state: AppState) {
                 Column(Modifier.padding(horizontal = 20.dp, vertical = 18.dp)) {
                     Text(recipe.name, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = TextDark, modifier = Modifier.padding(bottom = 8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 14.dp)) {
-                        listOf(recipe.cuisine, "⏱ ${recipe.timeMinutes} мин", "★ ${recipe.rating} (${recipe.reviews})").forEach {
+                        val minutesShort = stringResource(Res.string.minutes_short)
+                        listOf(recipe.cuisine, "⏱ ${recipe.timeMinutes} $minutesShort", "★ ${recipe.rating} (${recipe.reviews})").forEach {
                             Box(Modifier.background(Border, RoundedCornerShape(24.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
                                 Text(it, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                             }
@@ -116,8 +173,8 @@ fun RecipeDetailScreen(state: AppState) {
                             .padding(16.dp)
                     ) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Порции", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
-                            Text("${state.cartTotalLabel()} сум", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Orange)
+                            Text(stringResource(Res.string.portions), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                            Text("${state.cartTotalLabel()} ${stringResource(Res.string.sum)}", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Orange)
                         }
                         Row(
                             Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -137,7 +194,7 @@ fun RecipeDetailScreen(state: AppState) {
                             Text(state.portions.toString(), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.width(20.dp))
                         }
                     }
-                    Text("Состав", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(top = 20.dp, bottom = 12.dp))
+                    Text(stringResource(Res.string.composition), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(top = 20.dp, bottom = 12.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         state.scaledIngredients().forEach { ing ->
                             Row(
@@ -159,7 +216,7 @@ fun RecipeDetailScreen(state: AppState) {
                             }
                         }
                     }
-                    Text("Шаги приготовления", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(top = 20.dp, bottom = 12.dp))
+                    Text(stringResource(Res.string.cooking_steps_label), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(top = 20.dp, bottom = 12.dp))
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -170,7 +227,7 @@ fun RecipeDetailScreen(state: AppState) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("${recipe.steps.size} шагов", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                        Text(stringResource(Res.string.steps_count, recipe.steps.size), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                         Text(if (state.stepsOpen) "▲" else "▼", fontSize = 14.sp, color = TextMuted)
                     }
                     if (state.stepsOpen) {
@@ -188,7 +245,7 @@ fun RecipeDetailScreen(state: AppState) {
                         }
                     }
                     PrimaryButton(
-                        "👨‍🍳 Начать готовку",
+                        stringResource(Res.string.start_cooking_label),
                         onClick = { state.startCooking() },
                         color = Green,
                         modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
@@ -204,12 +261,12 @@ fun RecipeDetailScreen(state: AppState) {
                 .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 24.dp)
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Стоимость ингредиентов", fontSize = 13.sp, color = TextMuted)
-                Text("${state.cartTotalLabel()} сум", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text(stringResource(Res.string.ingredients_cost), fontSize = 13.sp, color = TextMuted)
+                Text("${state.cartTotalLabel()} ${stringResource(Res.string.sum)}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark)
             }
             PrimaryButton(
-                "Заказать ингредиенты →",
-                onClick = { state.go(Screen.CART) },
+                stringResource(Res.string.order_ingredients),
+                onClick = { state.goToCart() },
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
             )
         }
@@ -232,6 +289,7 @@ private fun StepperButton(label: String, onClick: () -> Unit) {
 
 @Composable
 fun CartScreen(state: AppState) {
+    LaunchedEffect(state.selectedDistrict) { state.refreshDeliveryFee() }
     Column(Modifier.fillMaxSize().background(Surface)) {
         Row(
             Modifier.padding(horizontal = 20.dp, vertical = 16.dp).fillMaxWidth(),
@@ -239,14 +297,20 @@ fun CartScreen(state: AppState) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             BackButton(onClick = { state.go(Screen.RECIPE) })
-            Text("Корзина: ${state.recipe.name}", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+            Text(stringResource(Res.string.cart_title, state.recipe.name), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+        }
+        state.cartSyncError?.let { error ->
+            Text(
+                error, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Amber,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
         }
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Показать только то, чего нет дома", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+            Text(stringResource(Res.string.show_only_missing), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
             Switch(
                 checked = state.onlyMissing,
                 onCheckedChange = { state.onlyMissing = it },
@@ -275,13 +339,13 @@ fun CartScreen(state: AppState) {
                             Text(row.packLabel, fontSize = 12.sp, color = TextMuted, modifier = Modifier.padding(top = 2.dp))
                             if (row.substituted) {
                                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text("⚠ Заменено (${row.subNote})", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Amber)
-                                    Text("Отменить", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Orange, modifier = Modifier.clickable { state.undoSub(row.key) })
+                                    Text(stringResource(Res.string.substituted_note, row.subNote), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Amber)
+                                    Text(stringResource(Res.string.cancel), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Orange, modifier = Modifier.clickable { state.undoSub(row.key) })
                                 }
                             }
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("${row.priceLabel} сум", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = TextDark, modifier = Modifier.padding(bottom = 8.dp))
+                            Text("${row.priceLabel} ${stringResource(Res.string.sum)}", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = TextDark, modifier = Modifier.padding(bottom = 8.dp))
                             Row(
                                 Modifier.background(PageBg, RoundedCornerShape(16.dp)).padding(4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -294,7 +358,7 @@ fun CartScreen(state: AppState) {
                         }
                     }
                     Text(
-                        "Убрать (уже есть дома)",
+                        stringResource(Res.string.remove_have_at_home),
                         fontSize = 12.sp, color = TextMuted,
                         modifier = Modifier.padding(top = 8.dp).clickable { state.removeCartItem(row.key) }
                     )
@@ -302,19 +366,20 @@ fun CartScreen(state: AppState) {
             }
         }
         Column(Modifier.background(CardWhite).padding(horizontal = 20.dp, vertical = 16.dp)) {
+            val sumLabel = stringResource(Res.string.sum)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Товары", fontSize = 14.sp, color = TextMuted)
-                Text("${money(state.cartSubtotal())} сум", fontSize = 14.sp, color = TextMuted)
+                Text(stringResource(Res.string.items_label), fontSize = 14.sp, color = TextMuted)
+                Text("${money(state.cartSubtotal())} $sumLabel", fontSize = 14.sp, color = TextMuted)
             }
             Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Доставка", fontSize = 14.sp, color = TextMuted)
-                Text("${money(state.deliveryFee())} сум", fontSize = 14.sp, color = TextMuted)
+                Text(stringResource(Res.string.delivery), fontSize = 14.sp, color = TextMuted)
+                Text("${money(state.deliveryFee())} $sumLabel", fontSize = 14.sp, color = TextMuted)
             }
             Row(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Итого", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
-                Text("${money(state.cartGrandTotal())} сум", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+                Text(stringResource(Res.string.total_label), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+                Text("${money(state.cartGrandTotal())} $sumLabel", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
             }
-            PrimaryButton("Оформить заказ", onClick = { state.go(Screen.CHECKOUT) }, modifier = Modifier.fillMaxWidth())
+            PrimaryButton(stringResource(Res.string.place_order_label), onClick = { state.go(Screen.CHECKOUT) }, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -329,7 +394,7 @@ fun CheckoutScreen(state: AppState) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             BackButton(onClick = { state.go(Screen.CART) })
-            Text("Оформление заказа", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+            Text(stringResource(Res.string.checkout_title), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
         }
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
@@ -338,7 +403,7 @@ fun CheckoutScreen(state: AppState) {
         ) {
             item {
                 Column {
-                    SectionLabel("Адрес доставки")
+                    SectionLabel(stringResource(Res.string.delivery_address_label))
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -347,14 +412,22 @@ fun CheckoutScreen(state: AppState) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            Text(state.deliveryAddressLabel(), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                            Text(
+                                state.deliveryAddressLabel(),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextDark,
+                                maxLines = 2
+                            )
                         }
                         Text(
-                            "Сменить",
+                            stringResource(Res.string.change),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Orange,
+                            maxLines = 1,
+                            softWrap = false,
                             modifier = Modifier.clickable { state.openAddressList(Screen.CHECKOUT) }
                         )
                     }
@@ -362,19 +435,24 @@ fun CheckoutScreen(state: AppState) {
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .height(120.dp)
+                            .height(140.dp)
                             .padding(top = 8.dp)
                             .clip(RoundedCornerShape(14.dp))
                     ) {
-                        DeliveryMap(center = addressPoint, zoom = 15f, markerAt = addressPoint)
+                        DeliveryMap(
+                            modifier = Modifier.fillMaxSize(),
+                            center = addressPoint,
+                            zoom = 15f,
+                            markerAt = addressPoint
+                        )
                     }
                 }
             }
             item {
                 Column {
-                    SectionLabel("Слот доставки")
+                    SectionLabel(stringResource(Res.string.delivery_slot_label))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SLOT_OPTIONS.forEach { (id, label) ->
+                        slotOptions().forEach { (id, label) ->
                             val selected = state.slot == id
                             Box(
                                 Modifier
@@ -393,9 +471,9 @@ fun CheckoutScreen(state: AppState) {
             }
             item {
                 Column {
-                    SectionLabel("Способ оплаты")
+                    SectionLabel(stringResource(Res.string.payment_method_label))
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PAYMENT_OPTIONS.forEach { (id, label) ->
+                        paymentOptions().forEach { (id, label) ->
                             val selected = state.payment == id
                             Row(
                                 Modifier
@@ -421,11 +499,11 @@ fun CheckoutScreen(state: AppState) {
             }
             item {
                 Column {
-                    SectionLabel("Комментарий курьеру")
+                    SectionLabel(stringResource(Res.string.comment_to_courier))
                     OutlinedTextField(
                         value = state.comment,
                         onValueChange = { state.comment = it },
-                        placeholder = { Text("Например: позвонить за 5 минут") },
+                        placeholder = { Text(stringResource(Res.string.comment_placeholder)) },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Border,
@@ -438,10 +516,16 @@ fun CheckoutScreen(state: AppState) {
                 }
             }
         }
-        Box(Modifier.background(CardWhite).padding(horizontal = 20.dp, vertical = 14.dp)) {
+        Column(Modifier.background(CardWhite).padding(horizontal = 20.dp, vertical = 14.dp)) {
+            state.checkoutError?.let { error ->
+                Text(
+                    error, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Amber,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             PrimaryButton(
-                "Оплатить и заказать · ${money(state.cartGrandTotal())} сум",
-                onClick = { state.placeOrder() },
+                if (state.placingOrder) stringResource(Res.string.placing_order) else stringResource(Res.string.pay_and_order, money(state.cartGrandTotal())),
+                onClick = { if (!state.placingOrder) state.placeOrder() },
                 modifier = Modifier.fillMaxWidth()
             )
         }

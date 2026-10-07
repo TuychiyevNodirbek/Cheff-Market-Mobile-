@@ -15,5 +15,8 @@ private val IMAGE_RES_BY_KEY: Map<String, DrawableResource> = mapOf(
 )
 
 /** Resolves a Recipe.imageKey to a Compose Multiplatform drawable resource - works identically
- *  on Android and iOS, unlike the old Int (Android resId) version this replaced. */
-fun imageResFor(key: String): DrawableResource = IMAGE_RES_BY_KEY.getValue(key)
+ *  on Android and iOS, unlike the old Int (Android resId) version this replaced. Recipes now come
+ *  from the backend, whose slugs don't match this bundled set, so unknown keys fall back to a
+ *  placeholder rather than crashing - the backend's own `image` URL isn't wired up to a network
+ *  image loader yet. */
+fun imageResFor(key: String): DrawableResource = IMAGE_RES_BY_KEY[key] ?: Res.drawable.dish_lagman

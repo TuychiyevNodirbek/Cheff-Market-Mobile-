@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,19 +28,41 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil3.ImageLoader
+import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.ktor3.KtorNetworkFetcherFactory
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.error_delivery_zone_not_found_prefix
+import uz.nodirbek.receiptdelivery.shared.resources.error_delivery_zone_not_found_suffix
+import uz.nodirbek.receiptdelivery.shared.resources.error_load_order
+import uz.nodirbek.receiptdelivery.shared.resources.error_load_orders
+import uz.nodirbek.receiptdelivery.shared.resources.error_load_recipe
+import uz.nodirbek.receiptdelivery.shared.resources.error_load_recipes
+import uz.nodirbek.receiptdelivery.shared.resources.error_place_order
+import uz.nodirbek.receiptdelivery.shared.resources.error_select_address_first
+import uz.nodirbek.receiptdelivery.shared.resources.error_select_slot
+import uz.nodirbek.receiptdelivery.shared.resources.error_send_code
+import uz.nodirbek.receiptdelivery.shared.resources.error_sync_address
+import uz.nodirbek.receiptdelivery.shared.resources.error_sync_cart
+import uz.nodirbek.receiptdelivery.shared.resources.error_verify_code
+import uz.nodirbek.receiptdelivery.shared.resources.guest
+import uz.nodirbek.receiptdelivery.shared.resources.in_stock
+import uz.nodirbek.receiptdelivery.shared.resources.minutes_short
+import uz.nodirbek.receiptdelivery.shared.resources.select_address
+import uz.nodirbek.receiptdelivery.shared.resources.timer_word
 import uz.nodirbek.receiptdelivery.geo.GeoPoint
 import kotlinx.coroutines.delay
 import uz.nodirbek.receiptdelivery.data.loadAddresses
 import uz.nodirbek.receiptdelivery.data.loadAuth
 import uz.nodirbek.receiptdelivery.data.loadCartSnapshot
 import uz.nodirbek.receiptdelivery.data.loadLastGpsPoint
-import uz.nodirbek.receiptdelivery.data.loadOrders
 import uz.nodirbek.receiptdelivery.data.loadSettings
 import uz.nodirbek.receiptdelivery.data.saveAddresses
 import uz.nodirbek.receiptdelivery.data.saveAuth
 import uz.nodirbek.receiptdelivery.data.saveCartSnapshot
 import uz.nodirbek.receiptdelivery.data.saveLastGpsPoint
-import uz.nodirbek.receiptdelivery.data.saveOrders
 import uz.nodirbek.receiptdelivery.data.saveSettings
 import uz.nodirbek.receiptdelivery.ui.components.NoInternetScreen
 import uz.nodirbek.receiptdelivery.ui.components.connectivityState
@@ -75,8 +98,15 @@ private val TAB_SCREENS = mapOf(
 
 private val SHOW_TAB_BAR_SCREENS = setOf(Screen.HOME, Screen.SEARCH, Screen.TRACKING, Screen.PROFILE)
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun RecipeApp() {
+    setSingletonImageLoaderFactory { context ->
+        ImageLoader.Builder(context)
+            .components { add(KtorNetworkFetcherFactory()) }
+            .build()
+    }
+
     val isOnline by connectivityState()
     if (!isOnline) {
         NoInternetScreen(onRetry = {})
@@ -88,28 +118,56 @@ fun RecipeApp() {
     // below without ever flashing the onboarding screen for a returning, authenticated user.
     val loadedAuth = remember { cartPrefs.loadAuth() }
 
+    // Resolved once from strings.xml (values/ or values-uz/, depending on Locale.getDefault() -
+    // see ApplyAppLanguage below) and handed to AppState for the error/fallback paths that live in
+    // plain suspend functions, where stringResource() can't be called directly.
+    val messages = AppMessages(
+        guest = stringResource(Res.string.guest),
+        selectAddress = stringResource(Res.string.select_address),
+        timerWord = stringResource(Res.string.timer_word),
+        minutesShort = stringResource(Res.string.minutes_short),
+        inStock = stringResource(Res.string.in_stock),
+        errorSendCode = stringResource(Res.string.error_send_code),
+        errorVerifyCode = stringResource(Res.string.error_verify_code),
+        errorLoadRecipes = stringResource(Res.string.error_load_recipes),
+        errorLoadRecipe = stringResource(Res.string.error_load_recipe),
+        errorLoadOrders = stringResource(Res.string.error_load_orders),
+        errorLoadOrder = stringResource(Res.string.error_load_order),
+        errorPlaceOrder = stringResource(Res.string.error_place_order),
+        errorSyncCart = stringResource(Res.string.error_sync_cart),
+        errorSyncAddress = stringResource(Res.string.error_sync_address),
+        errorSelectSlot = stringResource(Res.string.error_select_slot),
+        errorSelectAddressFirst = stringResource(Res.string.error_select_address_first),
+        errorDeliveryZoneNotFoundPrefix = stringResource(Res.string.error_delivery_zone_not_found_prefix),
+        errorDeliveryZoneNotFoundSuffix = stringResource(Res.string.error_delivery_zone_not_found_suffix)
+    )
+
     val navController = rememberNavController()
+    val coroutineScope = rememberCoroutineScope()
     val state = remember {
-        AppState(navController).apply {
+        AppState(navController, coroutineScope).apply {
+            this.messages = messages
             cartPrefs.loadCartSnapshot()?.let { applyCartSnapshot(it) }
-            orders.addAll(cartPrefs.loadOrders())
             val (addresses, activeId) = cartPrefs.loadAddresses()
             if (addresses.isNotEmpty()) applySavedAddresses(addresses, activeId)
             cartPrefs.loadLastGpsPoint()?.let { (lat, lon) -> lastGpsPoint = GeoPoint(lat, lon) }
             applyAuthSnapshot(loadedAuth)
             applySettingsSnapshot(cartPrefs.loadSettings())
+            // Orders are no longer cached locally - always the server's own list/detail
+            // (GET /orders/, /orders/<id>/), fetched by whichever screen needs them.
+            if (loadedAuth.isAuthenticated) {
+                loadOrders()
+                refreshProfile()
+            }
         }
     }
+    state.messages = messages
+
+    ApplyAppLanguage(state.language)
 
     LaunchedEffect(state) {
         snapshotFlow { state.cartSnapshot() }.collect { snapshot ->
             cartPrefs.saveCartSnapshot(snapshot)
-        }
-    }
-
-    LaunchedEffect(state) {
-        snapshotFlow { state.orders.toList() }.collect { orders ->
-            cartPrefs.saveOrders(orders)
         }
     }
 
@@ -188,7 +246,7 @@ private fun BottomTabBar(state: AppState, currentScreen: Screen?, modifier: Modi
             .background(Surface.copy(alpha = 0.95f))
             .padding(top = 8.dp, bottom = 22.dp)
     ) {
-        TAB_DEFS.forEach { (key, icon, name) ->
+        tabDefs().forEach { (key, icon, name) ->
             val screen = TAB_SCREENS.getValue(key)
             val active = currentScreen == screen
             val interactionSource = remember { MutableInteractionSource() }

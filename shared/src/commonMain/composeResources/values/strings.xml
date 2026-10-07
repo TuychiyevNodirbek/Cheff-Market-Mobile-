@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="back">Назад</string>
+    <string name="cancel">Отменить</string>
+    <string name="delete">Удалить</string>
+    <string name="change">Сменить</string>
+    <string name="done">Готово</string>
+    <string name="retry">Повторить</string>
+    <string name="guest">Гость</string>
+    <string name="sum">сум</string>
+
+    <string name="no_internet_title">Нет подключения к интернету</string>
+    <string name="no_internet_body">Подключитесь к Wi-Fi или мобильной сети, чтобы продолжить пользоваться приложением</string>
+
+    <string name="onb1_title">Выбери блюдо — получи именно то, что нужно</string>
+    <string name="onb1_body">Никаких лишних покупок. Мы соберём точный набор ингредиентов под рецепт и привезём его домой.</string>
+    <string name="onb2_title">Если чего-то нет — мы сразу скажем</string>
+    <string name="onb2_body">Прозрачные замены и остатки на складе — никаких сюрпризов при оплате.</string>
+    <string name="onb1_illustration">иллюстрация: блюдо + корзина</string>
+    <string name="onb2_illustration">иллюстрация: курьер с пакетами</string>
+    <string name="skip">Пропустить</string>
+    <string name="next">Далее</string>
+    <string name="continue_label">Продолжить</string>
+
+    <string name="auth_phone_title">Введите номер телефона</string>
+    <string name="auth_phone_subtitle">Мы отправим код подтверждения по SMS</string>
+    <string name="sending_code">Отправка...</string>
+    <string name="get_code">Получить код</string>
+    <string name="auth_otp_title">Введите код из SMS</string>
+    <string name="auth_otp_subtitle">Код отправлен на %1$s</string>
+    <string name="otp_wrong_code">Неверный код. Попробуйте ещё раз</string>
+    <string name="checking">Проверка...</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="change_number">Изменить номер</string>
+    <string name="auth_profile_title">Как вас зовут?</string>
+    <string name="auth_profile_subtitle">Это имя увидит курьер при доставке</string>
+    <string name="name_placeholder">Имя и фамилия</string>
+
+    <string name="error_send_code">Не удалось отправить код. Проверьте подключение к интернету.</string>
+    <string name="error_verify_code">Не удалось подтвердить код. Проверьте подключение к интернету.</string>
+    <string name="error_load_recipes">Не удалось загрузить рецепты. Проверьте подключение к интернету.</string>
+    <string name="error_load_recipe">Не удалось загрузить рецепт. Проверьте подключение к интернету.</string>
+    <string name="error_load_orders">Не удалось загрузить заказы. Проверьте подключение к интернету.</string>
+    <string name="error_load_order">Не удалось загрузить заказ. Проверьте подключение к интернету.</string>
+    <string name="error_place_order">Не удалось оформить заказ. Проверьте подключение к интернету.</string>
+    <string name="error_sync_cart">Не удалось сохранить корзину на сервере. Проверьте подключение к интернету.</string>
+    <string name="error_sync_address">Не удалось сохранить адрес на сервере. Проверьте подключение к интернету.</string>
+    <string name="error_select_slot">Выберите слот доставки.</string>
+    <string name="error_select_address_first">Сначала выберите адрес доставки.</string>
+    <string name="error_delivery_zone_not_found_prefix">Зона доставки \"</string>
+    <string name="error_delivery_zone_not_found_suffix">\" не найдена на сервере</string>
+
+    <string name="select_address">Выберите адрес</string>
+    <string name="district_title">Где вам удобно получать заказ?</string>
+    <string name="district_subtitle">Двигайте карту, чтобы указать точку доставки</string>
+    <string name="determining_address">Определяем адрес…</string>
+    <string name="delivery_address_label">Адрес доставки</string>
+    <string name="address_placeholder">ул. Амира Темура 12, кв. 34</string>
+    <string name="house_placeholder">Дом, квартира</string>
+    <string name="location_failed">Не удалось определить геолокацию</string>
+    <string name="confirm_address">Подтвердить адрес</string>
+    <string name="off_zone_illustration">иллюстрация: карта, зона</string>
+    <string name="off_zone_title">Мы пока не доставляем сюда</string>
+    <string name="off_zone_subtitle">Сейчас работаем в следующих районах:</string>
+    <string name="notify_when_launch">Уведомить, когда запустимся</string>
+    <string name="phone_placeholder">Ваш номер телефона</string>
+    <string name="notify_me">Уведомить меня</string>
+
+    <string name="nav_home">Рецепты</string>
+    <string name="nav_search">Поиск</string>
+    <string name="nav_tracking">Заказы</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="chip_uzbek_cuisine">Узбекская кухня</string>
+    <string name="chip_under_30_min">До 30 мин</string>
+    <string name="chip_budget">Бюджетно</string>
+    <string name="chip_vegetarian">Вегетарианское</string>
+    <string name="chip_popular">Популярное</string>
+    <string name="delivery">Доставка</string>
+    <string name="dinner_in_20">Ужин за 20 минут</string>
+    <string name="recommended_today">Рекомендуем сегодня</string>
+    <string name="minutes_short">мин</string>
+    <string name="servings_short">порции</string>
+    <string name="search_placeholder">Название или ингредиент</string>
+    <string name="my_addresses">Мои адреса</string>
+    <string name="no_saved_addresses">Сохранённых адресов пока нет</string>
+    <string name="add_address">Добавить адрес</string>
+
+    <string name="portions">Порции</string>
+    <string name="composition">Состав</string>
+    <string name="in_stock">В наличии</string>
+    <string name="cooking_steps_label">Шаги приготовления</string>
+    <string name="steps_count">%1$d шагов</string>
+    <string name="start_cooking_label">👨‍🍳 Начать готовку</string>
+    <string name="ingredients_cost">Стоимость ингредиентов</string>
+    <string name="order_ingredients">Заказать ингредиенты →</string>
+    <string name="cart_title">Корзина: %1$s</string>
+    <string name="show_only_missing">Показать только то, чего нет дома</string>
+    <string name="substituted_note">⚠ Заменено (%1$s)</string>
+    <string name="remove_have_at_home">Убрать (уже есть дома)</string>
+    <string name="items_label">Товары</string>
+    <string name="total_label">Итого</string>
+    <string name="place_order_label">Оформить заказ</string>
+    <string name="checkout_title">Оформление заказа</string>
+    <string name="delivery_slot_label">Слот доставки</string>
+    <string name="payment_method_label">Способ оплаты</string>
+    <string name="comment_to_courier">Комментарий курьеру</string>
+    <string name="comment_placeholder">Например: позвонить за 5 минут</string>
+    <string name="placing_order">Оформляем…</string>
+    <string name="pay_and_order">Оплатить и заказать · %1$s сум</string>
+
+    <string name="order_number">Заказ №%1$s</string>
+    <string name="order_word">Заказ</string>
+    <string name="loading_order">Загрузка заказа…</string>
+    <string name="order_not_found">Заказ не найден</string>
+    <string name="order_composition">Состав заказа</string>
+    <string name="servings_abbrev">порц.</string>
+    <string name="step_of">Шаг %1$d из %2$d</string>
+    <string name="timer_word">Таймер</string>
+    <string name="done_appetite">Готово! Приятного аппетита</string>
+    <string name="rate_dish">Оцените блюдо и поделитесь фото</string>
+    <string name="back_arrow">← Назад</string>
+    <string name="next_arrow">Далее →</string>
+    <string name="order_history_label">История заказов</string>
+    <string name="favorite_recipes">Избранные рецепты</string>
+    <string name="settings_label">Настройки</string>
+    <string name="phone_not_specified">Номер не указан</string>
+    <string name="loading_orders">Загрузка заказов…</string>
+    <string name="no_orders_yet">Заказов пока нет</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="notifications_section">Уведомления</string>
+    <string name="order_status_notif">О статусе заказа</string>
+    <string name="default_payment_section">Способ оплаты по умолчанию</string>
+    <string name="language_section">Язык</string>
+    <string name="dietary_prefs_section">Диетические предпочтения</string>
+    <string name="support_section">Поддержка</string>
+    <string name="call_support">Позвонить в поддержку</string>
+    <string name="logout">Выйти из аккаунта</string>
+
+    <string name="status_created">Создан</string>
+    <string name="status_confirmed">Подтверждён</string>
+    <string name="status_picking">Собирается</string>
+    <string name="status_packed">Собран</string>
+    <string name="status_delivering">В пути</string>
+    <string name="status_delivered">Доставлен</string>
+    <string name="status_cancelled">Отменён</string>
+
+    <string name="dietary_vegetarian">Вегетарианское</string>
+    <string name="dietary_gluten_free">Без глютена</string>
+    <string name="dietary_lactose_free">Без лактозы</string>
+    <string name="dietary_spicy">Острое</string>
+    <string name="payment_cash">Наличные</string>
+    <string name="slot_today_1">Сегодня 18:00–20:00</string>
+    <string name="slot_today_2">Сегодня 20:00–22:00</string>
+    <string name="slot_tomorrow_morning">Завтра утро</string>
+    <string name="slot_tomorrow_evening">Завтра вечер</string>
+</resources>

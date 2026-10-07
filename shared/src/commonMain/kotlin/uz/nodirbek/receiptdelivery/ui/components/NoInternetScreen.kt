@@ -12,6 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.no_internet_body
+import uz.nodirbek.receiptdelivery.shared.resources.no_internet_title
+import uz.nodirbek.receiptdelivery.shared.resources.retry
 import uz.nodirbek.receiptdelivery.ui.theme.Surface
 import uz.nodirbek.receiptdelivery.ui.theme.TextDark
 import uz.nodirbek.receiptdelivery.ui.theme.TextMuted
@@ -29,7 +34,7 @@ fun NoInternetScreen(onRetry: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         Text("📡", fontSize = 56.sp)
         Text(
-            "Нет подключения к интернету",
+            stringResource(Res.string.no_internet_title),
             fontSize = 20.sp,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             color = TextDark,
@@ -37,14 +42,14 @@ fun NoInternetScreen(onRetry: () -> Unit, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(top = 20.dp)
         )
         Text(
-            "Подключитесь к Wi-Fi или мобильной сети, чтобы продолжить пользоваться приложением",
+            stringResource(Res.string.no_internet_body),
             fontSize = 14.sp,
             color = TextMuted,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp)
         )
         PrimaryButton(
-            text = "Повторить",
+            text = stringResource(Res.string.retry),
             onClick = onRetry,
             modifier = Modifier.padding(top = 24.dp)
         )

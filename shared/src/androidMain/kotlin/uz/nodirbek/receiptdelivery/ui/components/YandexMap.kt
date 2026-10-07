@@ -86,17 +86,20 @@ fun YandexLocationPickerMap(
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
     val userLocationLayer = remember { MapKitFactory.getInstance().createUserLocationLayer(mapView.mapWindow) }
-    val cameraListenerRef = remember {
-        WeakReference(CameraListener { _, position, _, _ -> onCameraTargetChanged(position.target.toGeoPoint()) })
+    // MapKit's addCameraListener only accepts a WeakReference, so we must keep this strong
+    // reference alive ourselves for as long as the composable is in composition - otherwise
+    // the listener is eligible for GC immediately and camera tracking silently stops.
+    val cameraListener = remember {
+        CameraListener { _, position, _, _ -> onCameraTargetChanged(position.target.toGeoPoint()) }
     }
 
     DisposableEffect(mapView) {
         MapKitFactory.getInstance().onStart()
         mapView.onStart()
         mapView.map.move(CameraPosition(initialCenter.toYandexPoint(), initialZoom, 0f, 0f))
-        mapView.map.addCameraListener(cameraListenerRef)
+        mapView.map.addCameraListener(WeakReference(cameraListener))
         onDispose {
-            mapView.map.removeCameraListener(cameraListenerRef)
+            mapView.map.removeCameraListener(WeakReference(cameraListener))
             mapView.onStop()
             MapKitFactory.getInstance().onStop()
         }

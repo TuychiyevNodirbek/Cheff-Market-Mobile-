@@ -8,7 +8,11 @@ data class SavedAddress(
     val lat: Double,
     val lon: Double,
     /** Full address text typed by the user (street, house, apartment). Falls back to district when blank. */
-    val fullAddress: String = ""
+    val fullAddress: String = "",
+    /** House/apartment number, entered separately so it can be sent as the backend's required `house` field. */
+    val house: String = "",
+    /** Id of the matching `Address` row on the backend, once synced via `POST/PATCH /addresses/`. Null until synced. */
+    val serverId: Int? = null
 )
 
 private const val KEY_ADDRESSES = "saved_addresses"
@@ -23,7 +27,9 @@ fun Settings.saveAddresses(addresses: List<SavedAddress>, activeId: String?) {
         KEY_ADDRESSES,
         addresses.joinToString(ADDR_SEP) { a ->
             val safeFullAddress = a.fullAddress.replace(FIELD_SEP, " ").replace(ADDR_SEP, " ")
-            listOf(a.id, a.district, a.lat, a.lon, safeFullAddress).joinToString(FIELD_SEP)
+            val safeHouse = a.house.replace(FIELD_SEP, " ").replace(ADDR_SEP, " ")
+            listOf(a.id, a.district, a.lat, a.lon, safeFullAddress, safeHouse, a.serverId ?: "")
+                .joinToString(FIELD_SEP)
         }
     )
     if (activeId != null) putString(KEY_ACTIVE_ADDRESS, activeId) else remove(KEY_ACTIVE_ADDRESS)
@@ -37,7 +43,11 @@ fun Settings.loadAddresses(): Pair<List<SavedAddress>, String?> {
             val lat = parts[2].toDoubleOrNull()
             val lon = parts[3].toDoubleOrNull()
             val fullAddress = parts.getOrNull(4) ?: ""
-            if (lat != null && lon != null) SavedAddress(parts[0], parts[1], lat, lon, fullAddress) else null
+            val house = parts.getOrNull(5) ?: ""
+            val serverId = parts.getOrNull(6)?.toIntOrNull()
+            if (lat != null && lon != null) {
+                SavedAddress(parts[0], parts[1], lat, lon, fullAddress, house, serverId)
+            } else null
         } else null
     }
     return addresses to getStringOrNull(KEY_ACTIVE_ADDRESS)

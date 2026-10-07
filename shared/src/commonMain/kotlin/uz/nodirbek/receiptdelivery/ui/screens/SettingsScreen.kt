@@ -24,12 +24,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.call_support
+import uz.nodirbek.receiptdelivery.shared.resources.default_payment_section
+import uz.nodirbek.receiptdelivery.shared.resources.dietary_prefs_section
+import uz.nodirbek.receiptdelivery.shared.resources.language_section
+import uz.nodirbek.receiptdelivery.shared.resources.logout
+import uz.nodirbek.receiptdelivery.shared.resources.notifications_section
+import uz.nodirbek.receiptdelivery.shared.resources.order_status_notif
+import uz.nodirbek.receiptdelivery.shared.resources.settings_title
+import uz.nodirbek.receiptdelivery.shared.resources.support_section
 import uz.nodirbek.receiptdelivery.ui.AppState
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
 import uz.nodirbek.receiptdelivery.ui.components.rememberPhoneDialer
-import uz.nodirbek.receiptdelivery.ui.DIETARY_OPTIONS
+import uz.nodirbek.receiptdelivery.ui.DIETARY_OPTION_IDS
 import uz.nodirbek.receiptdelivery.ui.LANGUAGE_OPTIONS
-import uz.nodirbek.receiptdelivery.ui.PAYMENT_OPTIONS
+import uz.nodirbek.receiptdelivery.ui.dietaryOptionLabel
+import uz.nodirbek.receiptdelivery.ui.paymentOptions
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.theme.Border
 import uz.nodirbek.receiptdelivery.ui.theme.CardWhite
@@ -76,7 +88,7 @@ fun SettingsScreen(state: AppState) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             BackButton(onClick = { state.go(Screen.PROFILE) })
-            Text("Настройки", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+            Text(stringResource(Res.string.settings_title), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
         }
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
@@ -85,14 +97,14 @@ fun SettingsScreen(state: AppState) {
         ) {
             item {
                 Column {
-                    SectionTitle("Уведомления")
+                    SectionTitle(stringResource(Res.string.notifications_section))
                     SettingsCard {
                         Row(
                             Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("О статусе заказа", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                            Text(stringResource(Res.string.order_status_notif), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                             Switch(
                                 checked = state.notificationsEnabled,
                                 onCheckedChange = { state.notificationsEnabled = it },
@@ -104,9 +116,10 @@ fun SettingsScreen(state: AppState) {
             }
             item {
                 Column {
-                    SectionTitle("Способ оплаты по умолчанию")
+                    SectionTitle(stringResource(Res.string.default_payment_section))
                     SettingsCard {
-                        PAYMENT_OPTIONS.forEachIndexed { i, (id, label) ->
+                        val payment = paymentOptions()
+                        payment.forEachIndexed { i, (id, label) ->
                             val selected = state.payment == id
                             Row(
                                 Modifier
@@ -119,7 +132,7 @@ fun SettingsScreen(state: AppState) {
                                 Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                                 if (selected) Text("✓", color = Orange, fontWeight = FontWeight.Bold)
                             }
-                            if (i != PAYMENT_OPTIONS.lastIndex) {
+                            if (i != payment.lastIndex) {
                                 androidx.compose.material3.HorizontalDivider(color = Border)
                             }
                         }
@@ -128,7 +141,7 @@ fun SettingsScreen(state: AppState) {
             }
             item {
                 Column {
-                    SectionTitle("Язык")
+                    SectionTitle(stringResource(Res.string.language_section))
                     SettingsCard {
                         LANGUAGE_OPTIONS.forEachIndexed { i, (code, label) ->
                             val selected = state.language == code
@@ -148,28 +161,22 @@ fun SettingsScreen(state: AppState) {
                             }
                         }
                     }
-                    Text(
-                        "Полный перевод интерфейса появится позже",
-                        fontSize = 11.sp,
-                        color = TextMuted,
-                        modifier = Modifier.padding(top = 6.dp, start = 4.dp)
-                    )
                 }
             }
             item {
                 Column {
-                    SectionTitle("Диетические предпочтения")
+                    SectionTitle(stringResource(Res.string.dietary_prefs_section))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        DIETARY_OPTIONS.forEach { pref ->
-                            val active = state.dietaryPrefs.contains(pref)
+                        DIETARY_OPTION_IDS.forEach { id ->
+                            val active = state.dietaryPrefs.contains(id)
                             androidx.compose.foundation.layout.Box(
                                 Modifier
                                     .background(if (active) OrangeTint else CardWhite, RoundedCornerShape(24.dp))
                                     .clip(RoundedCornerShape(24.dp))
-                                    .clickable { state.toggleDietaryPref(pref) }
+                                    .clickable { state.toggleDietaryPref(id) }
                                     .padding(horizontal = 16.dp, vertical = 10.dp)
                             ) {
-                                Text(pref, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (active) Orange else TextDark)
+                                Text(dietaryOptionLabel(id), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = if (active) Orange else TextDark)
                             }
                         }
                     }
@@ -177,7 +184,7 @@ fun SettingsScreen(state: AppState) {
             }
             item {
                 Column {
-                    SectionTitle("Поддержка")
+                    SectionTitle(stringResource(Res.string.support_section))
                     SettingsCard {
                         Row(
                             Modifier
@@ -190,7 +197,7 @@ fun SettingsScreen(state: AppState) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Позвонить в поддержку", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                                Text(stringResource(Res.string.call_support), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
                                 Text(SUPPORT_PHONE, fontSize = 12.sp, color = TextMuted, modifier = Modifier.padding(top = 2.dp))
                             }
                             Text("📞", fontSize = 16.sp)
@@ -200,7 +207,7 @@ fun SettingsScreen(state: AppState) {
             }
             item {
                 Text(
-                    "Выйти из аккаунта",
+                    stringResource(Res.string.logout),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Orange,

@@ -39,6 +39,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.address_placeholder
+import uz.nodirbek.receiptdelivery.shared.resources.back
+import uz.nodirbek.receiptdelivery.shared.resources.confirm_address
+import uz.nodirbek.receiptdelivery.shared.resources.determining_address
+import uz.nodirbek.receiptdelivery.shared.resources.delivery_address_label
+import uz.nodirbek.receiptdelivery.shared.resources.district_subtitle
+import uz.nodirbek.receiptdelivery.shared.resources.district_title
+import uz.nodirbek.receiptdelivery.shared.resources.house_placeholder
+import uz.nodirbek.receiptdelivery.shared.resources.location_failed
+import uz.nodirbek.receiptdelivery.shared.resources.notify_me
+import uz.nodirbek.receiptdelivery.shared.resources.notify_when_launch
+import uz.nodirbek.receiptdelivery.shared.resources.off_zone_illustration
+import uz.nodirbek.receiptdelivery.shared.resources.off_zone_subtitle
+import uz.nodirbek.receiptdelivery.shared.resources.off_zone_title
+import uz.nodirbek.receiptdelivery.shared.resources.phone_placeholder
 import uz.nodirbek.receiptdelivery.data.DISTRICTS
 import uz.nodirbek.receiptdelivery.data.nearestDistrict
 import uz.nodirbek.receiptdelivery.ui.AppState
@@ -75,6 +92,9 @@ fun DistrictSelectScreen(state: AppState) {
     var cameraTarget by remember { mutableStateOf(startCenter) }
     var addressText by remember {
         mutableStateOf(if (state.pickerAddNew) "" else state.activeAddress()?.fullAddress ?: "")
+    }
+    var houseText by remember {
+        mutableStateOf(if (state.pickerAddNew) "" else state.activeAddress()?.house ?: "")
     }
     var addressEditedByUser by remember { mutableStateOf(addressText.isNotBlank()) }
     var geocoding by remember { mutableStateOf(false) }
@@ -133,8 +153,8 @@ fun DistrictSelectScreen(state: AppState) {
         ) {
             BackButton(onClick = { state.go(state.pickerBackTarget) })
             Column(Modifier.padding(start = 4.dp)) {
-                Text("Где вам удобно получать заказ?", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
-                Text("Двигайте карту, чтобы указать точку доставки", fontSize = 12.sp, color = TextMuted, modifier = Modifier.padding(top = 2.dp))
+                Text(stringResource(Res.string.district_title), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+                Text(stringResource(Res.string.district_subtitle), fontSize = 12.sp, color = TextMuted, modifier = Modifier.padding(top = 2.dp))
             }
         }
 
@@ -159,7 +179,7 @@ fun DistrictSelectScreen(state: AppState) {
                 .padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 24.dp)
         ) {
             Text(
-                if (geocoding) "Определяем адрес…" else "Адрес доставки",
+                if (geocoding) stringResource(Res.string.determining_address) else stringResource(Res.string.delivery_address_label),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextMuted,
@@ -171,7 +191,21 @@ fun DistrictSelectScreen(state: AppState) {
                     addressText = it
                     addressEditedByUser = true
                 },
-                placeholder = { Text("ул. Амира Темура 12, кв. 34") },
+                placeholder = { Text(stringResource(Res.string.address_placeholder)) },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Border,
+                    focusedBorderColor = Orange,
+                    unfocusedContainerColor = CardWhite,
+                    focusedContainerColor = CardWhite
+                ),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            )
+            OutlinedTextField(
+                value = houseText,
+                onValueChange = { houseText = it },
+                placeholder = { Text(stringResource(Res.string.house_placeholder)) },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Border,
@@ -183,11 +217,11 @@ fun DistrictSelectScreen(state: AppState) {
                 modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
             )
             if (locatingFailed) {
-                Text("Не удалось определить геолокацию", fontSize = 12.sp, color = Color(0xFFB8431A), modifier = Modifier.padding(bottom = 8.dp))
+                Text(stringResource(Res.string.location_failed), fontSize = 12.sp, color = Color(0xFFB8431A), modifier = Modifier.padding(bottom = 8.dp))
             }
             PrimaryButton(
-                "Подтвердить адрес",
-                onClick = { state.selectDistrict(resolvedDistrict, cameraTarget, addressText.trim()) },
+                stringResource(Res.string.confirm_address),
+                onClick = { state.selectDistrict(resolvedDistrict, cameraTarget, addressText.trim(), houseText.trim()) },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             )
         }
@@ -205,16 +239,16 @@ fun OffZoneScreen(state: AppState) {
                 tint = TextMuted,
                 modifier = Modifier.size(16.dp)
             )
-            Text("Назад", color = TextMuted, fontSize = 15.sp, modifier = Modifier.padding(start = 6.dp))
+            Text(stringResource(Res.string.back), color = TextMuted, fontSize = 15.sp, modifier = Modifier.padding(start = 6.dp))
         }
         PlaceholderBlock(
             modifier = Modifier.fillMaxWidth().height(180.dp).padding(top = 16.dp, bottom = 20.dp),
-            label = "иллюстрация: карта, зона",
+            label = stringResource(Res.string.off_zone_illustration),
             color1 = Border,
             color2 = uz.nodirbek.receiptdelivery.ui.theme.Amber.copy(alpha = 0.25f)
         )
-        Text("Мы пока не доставляем сюда", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = TextDark, modifier = Modifier.padding(bottom = 8.dp))
-        Text("Сейчас работаем в следующих районах:", fontSize = 14.sp, color = TextMuted, modifier = Modifier.padding(bottom = 16.dp))
+        Text(stringResource(Res.string.off_zone_title), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = TextDark, modifier = Modifier.padding(bottom = 8.dp))
+        Text(stringResource(Res.string.off_zone_subtitle), fontSize = 14.sp, color = TextMuted, modifier = Modifier.padding(bottom = 16.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 20.dp)) {
             DISTRICTS.forEach { n ->
                 Box(Modifier.background(Border, RoundedCornerShape(24.dp)).padding(horizontal = 12.dp, vertical = 8.dp)) {
@@ -222,12 +256,12 @@ fun OffZoneScreen(state: AppState) {
                 }
             }
         }
-        Text("Уведомить, когда запустимся", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark, modifier = Modifier.padding(bottom = 10.dp))
+        Text(stringResource(Res.string.notify_when_launch), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark, modifier = Modifier.padding(bottom = 10.dp))
         var phone by remember { mutableStateOf("") }
         OutlinedTextField(
             value = phone,
             onValueChange = { phone = it },
-            placeholder = { Text("Ваш номер телефона") },
+            placeholder = { Text(stringResource(Res.string.phone_placeholder)) },
             keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -239,6 +273,6 @@ fun OffZoneScreen(state: AppState) {
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
         )
-        PrimaryButton("Уведомить меня", onClick = { state.go(Screen.HOME) }, modifier = Modifier.fillMaxWidth())
+        PrimaryButton(stringResource(Res.string.notify_me), onClick = { state.go(Screen.HOME) }, modifier = Modifier.fillMaxWidth())
     }
 }

@@ -4,66 +4,98 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import uz.nodirbek.receiptdelivery.data.Order
-import uz.nodirbek.receiptdelivery.data.Recipe
-import uz.nodirbek.receiptdelivery.geo.GeoPoint
+import uz.nodirbek.receiptdelivery.data.api.ApiException
+import uz.nodirbek.receiptdelivery.data.api.ApiOrderDetail
+import uz.nodirbek.receiptdelivery.data.api.ApiOrderListItem
+import uz.nodirbek.receiptdelivery.data.api.MobileApiService
 
-private val RU_MONTHS_SHORT = listOf(
-    "янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"
-)
-
-/** "18 авг, 12:00" - multiplatform-safe replacement for java.text.SimpleDateFormat,
- *  which doesn't exist outside the JVM (would break the iOS target). */
-private fun currentOrderDateLabel(): String {
-    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    val month = RU_MONTHS_SHORT[now.monthNumber - 1]
-    val hh = now.hour.toString().padStart(2, '0')
-    val mm = now.minute.toString().padStart(2, '0')
-    return "${now.dayOfMonth} $month, $hh:$mm"
-}
-
-/** Order history and delivery-tracking status. */
+/** Order history and the currently tracked order - both sourced from the backend
+ *  (`GET /orders/`, `GET /orders/<id>/`, `POST /orders/create/`). This app never invents order
+ *  data locally; there's no local order id/status simulation here. */
 class OrderState {
-    var orderStatusIdx by mutableStateOf(0)
-    var orderCardOpen by mutableStateOf(true)
-    val orders = mutableStateListOf<Order>()
+    val orders = mutableStateListOf<ApiOrderListItem>()
+    var ordersLoading by mutableStateOf(false)
+        private set
+    var ordersError by mutableStateOf<String?>(null)
+        private set
 
-    fun orderStatuses(): List<OrderStatusStep> = STATUS_LABELS.mapIndexed { i, label ->
-        OrderStatusStep(label, i <= orderStatusIdx, i)
+    var currentOrder by mutableStateOf<ApiOrderDetail?>(null)
+        private set
+    var currentOrderLoading by mutableStateOf(false)
+        private set
+    var currentOrderError by mutableStateOf<String?>(null)
+        private set
+
+    var checkoutError by mutableStateOf<String?>(null)
+        private set
+    var placingOrder by mutableStateOf(false)
+        private set
+
+    /** Drops whatever's cached, e.g. on logout - the next authenticated user's `GET /orders/` must
+     *  never show through what was on screen for the previous one. */
+    fun clear() {
+        orders.clear()
+        currentOrder = null
+        ordersError = null
+        currentOrderError = null
+        checkoutError = null
     }
 
-    fun mapLabel(): String =
-        if (orderStatusIdx >= 2) "карта: курьер в пути" else "карта появится, когда курьер выедет"
-
-    fun advanceOrderStatus() {
-        orderStatusIdx = minOf(STATUS_LABELS.size - 1, orderStatusIdx + 1)
-        if (orders.isNotEmpty()) {
-            orders[0] = orders[0].copy(statusLabel = STATUS_LABELS[orderStatusIdx])
+    suspend fun loadOrders(api: MobileApiService, messages: AppMessages) {
+        ordersLoading = true
+        ordersError = null
+        try {
+            val results = api.orders().results
+            orders.clear()
+            orders.addAll(results)
+        } catch (e: Exception) {
+            ordersError = messages.errorLoadOrders
+        } finally {
+            ordersLoading = false
         }
     }
 
-    fun currentOrderId(): String = orders.firstOrNull()?.id ?: "—"
+    suspend fun loadOrderDetail(api: MobileApiService, id: Int, messages: AppMessages) {
+        currentOrderLoading = true
+        currentOrderError = null
+        try {
+            currentOrder = api.order(id)
+        } catch (e: Exception) {
+            currentOrderError = messages.errorLoadOrder
+        } finally {
+            currentOrderLoading = false
+        }
+    }
 
-    /** The point to show on the tracking map: the order's own saved location, not whatever the live selected address is now. */
-    fun currentOrderPoint(fallback: GeoPoint): GeoPoint = orders.firstOrNull()?.let { GeoPoint(it.lat, it.lon) } ?: fallback
+    /** Surfaces a checkout failure that happens before the API call itself (e.g. no saved address),
+     *  so the checkout screen can show one consistent error regardless of where it came from. */
+    fun failCheckout(message: String) {
+        checkoutError = message
+    }
 
-    fun placeOrder(recipe: Recipe, itemCount: Int, totalLabel: String, district: String, point: GeoPoint) {
-        val order = Order(
-            id = (2481 + orders.size).toString(),
-            recipeName = recipe.name,
-            itemsSummary = "$itemCount позиции",
-            totalLabel = totalLabel,
-            dateLabel = currentOrderDateLabel(),
-            statusLabel = STATUS_LABELS[0],
-            district = district,
-            lat = point.latitude,
-            lon = point.longitude
-        )
-        orders.add(0, order)
-        orderStatusIdx = 0
-        orderCardOpen = true
+    /** Returns the created order's id on success, or null on failure (see [checkoutError]). */
+    suspend fun placeOrder(
+        api: MobileApiService,
+        address: Int,
+        slot: Int,
+        paymentProvider: String,
+        comment: String,
+        messages: AppMessages
+    ): Int? {
+        placingOrder = true
+        checkoutError = null
+        return try {
+            val created = api.createOrder(address, slot, paymentProvider, comment)
+            currentOrder = created
+            created.id
+        } catch (e: ApiException) {
+            checkoutError = e.message
+            null
+        } catch (e: Exception) {
+            checkoutError = messages.errorPlaceOrder
+            null
+        } finally {
+            placingOrder = false
+        }
     }
 }

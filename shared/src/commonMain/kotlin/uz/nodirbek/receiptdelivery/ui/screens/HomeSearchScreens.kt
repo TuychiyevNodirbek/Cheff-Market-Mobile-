@@ -19,10 +19,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,13 +35,34 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.add_address
+import uz.nodirbek.receiptdelivery.shared.resources.chip_budget
+import uz.nodirbek.receiptdelivery.shared.resources.chip_popular
+import uz.nodirbek.receiptdelivery.shared.resources.chip_under_30_min
+import uz.nodirbek.receiptdelivery.shared.resources.chip_uzbek_cuisine
+import uz.nodirbek.receiptdelivery.shared.resources.chip_vegetarian
+import uz.nodirbek.receiptdelivery.shared.resources.delete
+import uz.nodirbek.receiptdelivery.shared.resources.delivery
+import uz.nodirbek.receiptdelivery.shared.resources.dinner_in_20
+import uz.nodirbek.receiptdelivery.shared.resources.minutes_short
+import uz.nodirbek.receiptdelivery.shared.resources.my_addresses
+import uz.nodirbek.receiptdelivery.shared.resources.no_saved_addresses
+import uz.nodirbek.receiptdelivery.shared.resources.recommended_today
+import uz.nodirbek.receiptdelivery.shared.resources.search_placeholder
+import uz.nodirbek.receiptdelivery.shared.resources.servings_short
 import uz.nodirbek.receiptdelivery.ui.AppState
 import uz.nodirbek.receiptdelivery.ui.RecipeCard
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
+import uz.nodirbek.receiptdelivery.ui.components.FeedCardSkeleton
+import uz.nodirbek.receiptdelivery.ui.components.CollectionCardSkeleton
 import uz.nodirbek.receiptdelivery.ui.theme.Border
 import uz.nodirbek.receiptdelivery.ui.theme.CardWhite
 import uz.nodirbek.receiptdelivery.ui.theme.Orange
@@ -47,7 +71,14 @@ import uz.nodirbek.receiptdelivery.ui.theme.Surface
 import uz.nodirbek.receiptdelivery.ui.theme.TextDark
 import uz.nodirbek.receiptdelivery.ui.theme.TextMuted
 
-private val CHIP_LABELS = listOf("Узбекская кухня", "До 30 мин", "Бюджетно", "Вегетарианское", "Популярное")
+@Composable
+private fun chipLabels() = listOf(
+    stringResource(Res.string.chip_uzbek_cuisine),
+    stringResource(Res.string.chip_under_30_min),
+    stringResource(Res.string.chip_budget),
+    stringResource(Res.string.chip_vegetarian),
+    stringResource(Res.string.chip_popular)
+)
 
 private fun heroBrush(colors: Pair<Long, Long>) = Brush.linearGradient(
     listOf(Color(colors.first), Color(colors.second))
@@ -66,17 +97,30 @@ private fun DishHero(
             .clip(shape),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(r.imageRes),
-            contentDescription = r.name,
-            modifier = Modifier.fillMaxSize().padding(imagePadding),
-            contentScale = ContentScale.Fit
-        )
+        if (r.imageUrl != null) {
+            AsyncImage(
+                model = r.imageUrl,
+                contentDescription = r.name,
+                modifier = Modifier.fillMaxSize().padding(imagePadding),
+                contentScale = ContentScale.Fit,
+                placeholder = painterResource(r.imageRes),
+                error = painterResource(r.imageRes)
+            )
+        } else {
+            Image(
+                painter = painterResource(r.imageRes),
+                contentDescription = r.name,
+                modifier = Modifier.fillMaxSize().padding(imagePadding),
+                contentScale = ContentScale.Fit
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(state: AppState) {
+    LaunchedEffect(Unit) { state.loadRecipes() }
     Column(Modifier.fillMaxSize().background(Surface)) {
         Row(
             Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 8.dp),
@@ -95,13 +139,14 @@ fun HomeScreen(state: AppState) {
             ) {
                 Text("📍", fontSize = 16.sp)
                 Column(Modifier.weight(1f)) {
-                    Text("Доставка", fontSize = 11.sp, color = TextMuted)
+                    Text(stringResource(Res.string.delivery), fontSize = 11.sp, color = TextMuted)
                     Text(
-                        state.selectedDistrict ?: "Выбрать адрес",
+                        state.deliveryAddressLabel(),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextDark,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 Text("▾", fontSize = 14.sp, color = TextMuted)
@@ -115,12 +160,13 @@ fun HomeScreen(state: AppState) {
                 Text("☷", fontSize = 16.sp, color = TextDark)
             }
         }
+        val chipLabels = chipLabels()
         LazyRow(
             Modifier.padding(vertical = 8.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(CHIP_LABELS) { label ->
+            items(chipLabels) { label ->
                 val active = state.activeChips[label] == true
                 Box(
                     Modifier
@@ -134,30 +180,51 @@ fun HomeScreen(state: AppState) {
                 }
             }
         }
-        LazyColumn(
-            Modifier.weight(1f).fillMaxWidth(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 90.dp)
+        PullToRefreshBox(
+            isRefreshing = state.recipesRefreshing,
+            onRefresh = { state.refreshRecipes() },
+            modifier = Modifier.weight(1f).fillMaxWidth()
         ) {
-            item {
-                Text("Ужин за 20 минут", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(vertical = 12.dp))
-            }
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(bottom = 20.dp)) {
-                    items(state.collectionCards()) { r ->
-                        CollectionCard(r, onClick = { state.selectRecipe(r.id) })
+            LazyColumn(
+                Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 90.dp)
+            ) {
+                item {
+                    Text(stringResource(Res.string.dinner_in_20), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(vertical = 12.dp))
+                }
+                if (state.recipesLoading) {
+                    item {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(bottom = 20.dp)) {
+                            items(3) { CollectionCardSkeleton() }
+                        }
+                    }
+                } else {
+                    item {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(bottom = 20.dp)) {
+                            items(state.collectionCards()) { r ->
+                                CollectionCard(r, onClick = { state.selectRecipe(r.id) })
+                            }
+                        }
                     }
                 }
-            }
-            item {
-                Text("Рекомендуем сегодня", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(bottom = 12.dp))
-            }
-            items(state.allRecipeCards()) { r ->
-                FeedCard(
-                    r,
-                    onClick = { state.selectRecipe(r.id) },
-                    onFav = { state.toggleFav(r.id) },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                item {
+                    Text(stringResource(Res.string.recommended_today), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(bottom = 12.dp))
+                }
+                state.recipesError?.let { error ->
+                    item { Text(error, fontSize = 13.sp, color = TextMuted, modifier = Modifier.padding(bottom = 12.dp)) }
+                }
+                if (state.recipesLoading) {
+                    items(3) { FeedCardSkeleton(modifier = Modifier.padding(bottom = 16.dp)) }
+                } else {
+                    items(state.allRecipeCards()) { r ->
+                        FeedCard(
+                            r,
+                            onClick = { state.selectRecipe(r.id) },
+                            onFav = { state.toggleFav(r.id) },
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -175,7 +242,7 @@ private fun CollectionCard(r: RecipeCard, onClick: () -> Unit) {
         DishHero(r, Modifier.fillMaxWidth().height(90.dp), imagePadding = 12.dp)
         Column(Modifier.padding(10.dp)) {
             Text(r.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark, maxLines = 2)
-            Text("${r.time} мин", fontSize = 11.sp, color = TextMuted, modifier = Modifier.padding(top = 4.dp))
+            Text("${r.time} ${stringResource(Res.string.minutes_short)}", fontSize = 11.sp, color = TextMuted, modifier = Modifier.padding(top = 4.dp))
         }
     }
 }
@@ -206,8 +273,10 @@ private fun FeedCard(r: RecipeCard, onClick: () -> Unit, onFav: () -> Unit, modi
         }
         Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp)) {
             Text(r.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(bottom = 6.dp))
-            Text("⏱ ${r.time} мин  ·  🍽 ${r.baseServings} порции", fontSize = 13.sp, color = TextMuted, modifier = Modifier.padding(bottom = 8.dp))
-            Text("от ${r.priceLabel} сум", fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, color = Orange)
+            Text(
+                "⏱ ${r.time} ${stringResource(Res.string.minutes_short)}  ·  🍽 ${r.baseServings} ${stringResource(Res.string.servings_short)}",
+                fontSize = 13.sp, color = TextMuted
+            )
         }
     }
 }
@@ -219,7 +288,7 @@ fun SearchScreen(state: AppState) {
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { state.searchQuery = it },
-                placeholder = { Text("Название или ингредиент") },
+                placeholder = { Text(stringResource(Res.string.search_placeholder)) },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -250,7 +319,10 @@ fun SearchScreen(state: AppState) {
                     DishHero(r, Modifier.size(56.dp), shape = RoundedCornerShape(10.dp), imagePadding = 6.dp)
                     Column(Modifier.weight(1f)) {
                         Text(r.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark, modifier = Modifier.padding(bottom = 4.dp))
-                        Text("⏱ ${r.time} мин · от ${r.priceLabel} сум", fontSize = 12.sp, color = TextMuted)
+                        Text(
+                            "⏱ ${r.time} ${stringResource(Res.string.minutes_short)} · 🍽 ${r.baseServings} ${stringResource(Res.string.servings_short)}",
+                            fontSize = 12.sp, color = TextMuted
+                        )
                     }
                 }
             }
@@ -267,7 +339,7 @@ fun AddressesScreen(state: AppState) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             BackButton(onClick = { state.go(state.addressesReturnTarget) })
-            Text("Мои адреса", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
+            Text(stringResource(Res.string.my_addresses), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = TextDark)
         }
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
@@ -277,7 +349,7 @@ fun AddressesScreen(state: AppState) {
             if (state.savedAddresses.isEmpty()) {
                 item {
                     Text(
-                        "Сохранённых адресов пока нет",
+                        stringResource(Res.string.no_saved_addresses),
                         fontSize = 14.sp,
                         color = TextMuted,
                         modifier = Modifier.padding(vertical = 20.dp)
@@ -306,7 +378,7 @@ fun AddressesScreen(state: AppState) {
                         )
                     }
                     Text(
-                        "Удалить",
+                        stringResource(Res.string.delete),
                         fontSize = 12.sp,
                         color = TextMuted,
                         modifier = Modifier.clickable { state.removeAddress(addr) }
@@ -326,7 +398,7 @@ fun AddressesScreen(state: AppState) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("+", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Orange)
-                    Text("Добавить адрес", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Orange)
+                    Text(stringResource(Res.string.add_address), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Orange)
                 }
             }
         }

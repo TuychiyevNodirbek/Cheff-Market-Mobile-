@@ -37,13 +37,22 @@ class RecipeDataTest {
     }
 
     @Test
-    fun recipe_catalog_ids_match_their_map_keys() {
-        RECIPES.forEach { (id, recipe) -> assertEquals(id, recipe.id) }
+    fun heroColorsFor_is_deterministic_for_the_same_slug() {
+        assertEquals(heroColorsFor("lagman"), heroColorsFor("lagman"))
     }
 
     @Test
     fun recipe_basePrice_sums_ingredient_prices() {
-        val recipe = RECIPES.getValue("lagman")
+        val recipe = Recipe(
+            id = "lagman", name = "Лагман домашний", cuisine = "boil", timeMinutes = 40,
+            baseServings = 4, rating = "", reviews = 0, heroColors = 0xFFF0C9A0 to 0xFFE0A870,
+            imageKey = "lagman",
+            ingredients = listOf(
+                Ingredient("beef", "Говядина", "г", 500, 32000, StockStatus.OK),
+                Ingredient("noodles", "Лапша яичная", "г", 400, 12000, StockStatus.OK)
+            ),
+            steps = emptyList()
+        )
         assertEquals(recipe.ingredients.sumOf { it.pricePerBase }, recipe.basePrice)
     }
 }

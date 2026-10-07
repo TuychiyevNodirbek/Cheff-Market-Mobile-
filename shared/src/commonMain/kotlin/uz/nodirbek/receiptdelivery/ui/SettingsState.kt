@@ -9,8 +9,10 @@ import uz.nodirbek.receiptdelivery.data.SettingsSnapshot
 class SettingsState {
     var notificationsEnabled by mutableStateOf(true)
     var language by mutableStateOf("ru")
-    /** Default/selected payment method - also read from the Checkout screen, not just Settings. */
-    var payment by mutableStateOf("payme")
+    /** Default/selected payment method - also read from the Checkout screen, not just Settings.
+     *  Online payment providers aren't wired up on the backend yet - `POST /orders/create/` only
+     *  accepts "cash", so that's the only real option (see [uz.nodirbek.receiptdelivery.ui.paymentOptions]). */
+    var payment by mutableStateOf("cash")
     val dietaryPrefs = mutableStateListOf<String>()
 
     fun toggleDietaryPref(pref: String) {

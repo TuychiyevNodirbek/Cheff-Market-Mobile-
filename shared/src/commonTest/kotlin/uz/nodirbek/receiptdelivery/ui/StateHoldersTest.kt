@@ -1,8 +1,11 @@
 package uz.nodirbek.receiptdelivery.ui
 
 import uz.nodirbek.receiptdelivery.data.AuthSnapshot
-import uz.nodirbek.receiptdelivery.data.RECIPES
+import uz.nodirbek.receiptdelivery.data.Ingredient
+import uz.nodirbek.receiptdelivery.data.Recipe
 import uz.nodirbek.receiptdelivery.data.SettingsSnapshot
+import uz.nodirbek.receiptdelivery.data.Step
+import uz.nodirbek.receiptdelivery.data.StockStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -49,7 +52,19 @@ class SettingsStateTest {
 }
 
 class CookingStateTest {
-    private val recipe = RECIPES.getValue("shakshuka") // 4 steps, has at least one timed step
+    // 4 steps, has at least one timed step.
+    private val recipe = Recipe(
+        id = "shakshuka", name = "Шакшука", cuisine = "", timeMinutes = 20,
+        baseServings = 2, rating = "", reviews = 0, heroColors = 0xFFE89060 to 0xFFD06838,
+        imageKey = "shakshuka",
+        ingredients = listOf(Ingredient("eggs", "Яйца", "шт", 6, 9000, StockStatus.OK)),
+        steps = listOf(
+            Step("Обжарьте лук и перец до мягкости."),
+            Step("Добавьте томаты, тушите 10 минут до соуса.", 10),
+            Step("Сделайте углубления, вбейте яйца."),
+            Step("Готовьте под крышкой 6 минут до желаемой готовности яиц.", 6)
+        )
+    )
 
     @Test
     fun cookingDone_true_once_past_last_step() {

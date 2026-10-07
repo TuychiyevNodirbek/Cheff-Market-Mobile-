@@ -28,6 +28,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.back
 import uz.nodirbek.receiptdelivery.ui.theme.Border
 import uz.nodirbek.receiptdelivery.ui.theme.CardWhite
 import uz.nodirbek.receiptdelivery.ui.theme.Orange
@@ -97,7 +100,7 @@ fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier, tint: Color =
     ) {
         Icon(
             Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Назад",
+            contentDescription = stringResource(Res.string.back),
             tint = tint,
             modifier = Modifier.size(22.dp)
         )

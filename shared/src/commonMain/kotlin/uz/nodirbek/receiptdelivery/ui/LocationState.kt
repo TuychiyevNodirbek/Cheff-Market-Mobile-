@@ -47,22 +47,28 @@ class LocationState {
     }
 
     /** Resolves the district, saves/updates the address if applicable, and returns where to navigate. */
-    fun selectDistrict(name: String, point: GeoPoint?, fullAddress: String): Screen {
+    fun selectDistrict(name: String, point: GeoPoint?, fullAddress: String, house: String = ""): Screen {
         if (name == OFF_ZONE_DISTRICT) return Screen.OFFZONE
         val resolved = point ?: DISTRICT_COORDS[name]?.let { GeoPoint(it.first, it.second) }
         selectedDistrict = name
         resolved?.let { p ->
             deliveryPoint = p
-            upsertAddress(name, p, fullAddress, pickerAddNew)
+            upsertAddress(name, p, fullAddress, house, pickerAddNew)
         }
         return pickerConfirmTarget
     }
 
-    private fun upsertAddress(district: String, point: GeoPoint, fullAddress: String, addNew: Boolean) {
-        val existing = if (addNew) null else savedAddresses.find { it.district == district }
+    private fun upsertAddress(district: String, point: GeoPoint, fullAddress: String, house: String, addNew: Boolean) {
+        val existing = if (addNew) null else savedAddresses.find { it.id == activeAddressId } ?: savedAddresses.find { it.district == district }
         if (existing != null) {
-            savedAddresses[savedAddresses.indexOf(existing)] =
-                existing.copy(lat = point.latitude, lon = point.longitude, fullAddress = fullAddress)
+            savedAddresses[savedAddresses.indexOf(existing)] = existing.copy(
+                lat = point.latitude,
+                lon = point.longitude,
+                fullAddress = fullAddress,
+                house = house,
+                // The edited fields no longer match whatever was last synced to the backend.
+                serverId = null
+            )
             activeAddressId = existing.id
         } else {
             val address = SavedAddress(
@@ -70,11 +76,19 @@ class LocationState {
                 district = district,
                 lat = point.latitude,
                 lon = point.longitude,
-                fullAddress = fullAddress
+                fullAddress = fullAddress,
+                house = house
             )
             savedAddresses.add(address)
             activeAddressId = address.id
         }
+    }
+
+    /** Records the backend's `Address.id` for a saved address once it's been synced via the API,
+     *  so future edits PATCH the same row instead of creating a duplicate. */
+    fun markAddressSynced(localId: String, serverId: Int) {
+        val index = savedAddresses.indexOfFirst { it.id == localId }
+        if (index >= 0) savedAddresses[index] = savedAddresses[index].copy(serverId = serverId)
     }
 
     fun selectSavedAddress(address: SavedAddress): Screen {
@@ -97,8 +111,8 @@ class LocationState {
     fun activeAddress(): SavedAddress? = savedAddresses.find { it.id == activeAddressId }
 
     /** Full address text for display (street/house typed by the user), falling back to the district name. */
-    fun deliveryAddressLabel(): String =
-        activeAddress()?.let { it.fullAddress.ifBlank { it.district } } ?: (selectedDistrict ?: "Выберите адрес")
+    fun deliveryAddressLabel(messages: AppMessages): String =
+        activeAddress()?.let { it.fullAddress.ifBlank { it.district } } ?: (selectedDistrict ?: messages.selectAddress)
 
     fun applySavedAddresses(list: List<SavedAddress>, activeId: String?) {
         savedAddresses.clear()

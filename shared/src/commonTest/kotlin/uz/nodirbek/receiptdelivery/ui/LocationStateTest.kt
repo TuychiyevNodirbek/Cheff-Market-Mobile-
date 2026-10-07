@@ -144,19 +144,20 @@ class LocationStateTest {
     @Test
     fun deliveryAddressLabel_prefers_fullAddress_then_district_then_placeholder() {
         val location = LocationState()
-        assertEquals("Выберите адрес", location.deliveryAddressLabel())
+        val messages = AppMessages.PLACEHOLDER.copy(selectAddress = "Выберите адрес")
+        assertEquals("Выберите адрес", location.deliveryAddressLabel(messages))
 
         location.applySavedAddresses(
             listOf(SavedAddress(id = "a1", district = "Юнусабад", lat = 1.0, lon = 1.0, fullAddress = "")),
             activeId = "a1",
         )
-        assertEquals("Юнусабад", location.deliveryAddressLabel(), "пустой fullAddress -> должно откатиться на название района")
+        assertEquals("Юнусабад", location.deliveryAddressLabel(messages), "пустой fullAddress -> должно откатиться на название района")
 
         location.applySavedAddresses(
             listOf(SavedAddress(id = "a1", district = "Юнусабад", lat = 1.0, lon = 1.0, fullAddress = "ул. Амира Темура, 5")),
             activeId = "a1",
         )
-        assertEquals("ул. Амира Темура, 5", location.deliveryAddressLabel())
+        assertEquals("ул. Амира Темура, 5", location.deliveryAddressLabel(messages))
     }
 
     @Test

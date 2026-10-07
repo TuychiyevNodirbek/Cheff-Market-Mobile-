@@ -29,6 +29,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.auth_otp_subtitle
+import uz.nodirbek.receiptdelivery.shared.resources.auth_otp_title
+import uz.nodirbek.receiptdelivery.shared.resources.auth_phone_subtitle
+import uz.nodirbek.receiptdelivery.shared.resources.auth_phone_title
+import uz.nodirbek.receiptdelivery.shared.resources.auth_profile_subtitle
+import uz.nodirbek.receiptdelivery.shared.resources.auth_profile_title
+import uz.nodirbek.receiptdelivery.shared.resources.change_number
+import uz.nodirbek.receiptdelivery.shared.resources.checking
+import uz.nodirbek.receiptdelivery.shared.resources.confirm
+import uz.nodirbek.receiptdelivery.shared.resources.continue_label
+import uz.nodirbek.receiptdelivery.shared.resources.get_code
+import uz.nodirbek.receiptdelivery.shared.resources.name_placeholder
+import uz.nodirbek.receiptdelivery.shared.resources.otp_wrong_code
+import uz.nodirbek.receiptdelivery.shared.resources.sending_code
 import uz.nodirbek.receiptdelivery.ui.AppState
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.BackButton
@@ -99,19 +115,34 @@ private val fieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
     focusedContainerColor = CardWhite
 )
 
+private const val PHONE_PREFIX = "+998 "
+private const val SUBSCRIBER_NUMBER_LENGTH = 9
+
 @Composable
 fun AuthPhoneScreen(state: AppState) {
-    var phone by remember { mutableStateOf(state.userPhone.ifBlank { "+998 " }) }
+    // Only the subscriber number (digits after the fixed "+998 " prefix) lives in state -
+    // the prefix itself is never part of what the user can edit or delete.
+    var subscriberNumber by remember {
+        mutableStateOf(state.userPhone.removePrefix("+998").filter { it.isDigit() }.take(SUBSCRIBER_NUMBER_LENGTH))
+    }
 
     Column(Modifier.fillMaxSize().background(Surface).padding(horizontal = 24.dp, vertical = 32.dp)) {
         AuthHeader(
-            title = "Введите номер телефона",
-            subtitle = "Мы отправим код подтверждения по SMS",
+            title = stringResource(Res.string.auth_phone_title),
+            subtitle = stringResource(Res.string.auth_phone_subtitle),
             onBack = { state.go(Screen.ONB2) }
         )
         OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
+            value = PHONE_PREFIX + subscriberNumber,
+            onValueChange = { new ->
+                // Any edit that doesn't keep the "+998 " prefix intact (e.g. backspacing into it)
+                // is ignored - only digits typed after it ever change the state.
+                if (new.startsWith(PHONE_PREFIX)) {
+                    subscriberNumber = new.removePrefix(PHONE_PREFIX)
+                        .filter { it.isDigit() }
+                        .take(SUBSCRIBER_NUMBER_LENGTH)
+                }
+            },
             placeholder = { Text("+998 90 123 45 67") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -119,11 +150,18 @@ fun AuthPhoneScreen(state: AppState) {
             colors = fieldColors,
             modifier = Modifier.fillMaxWidth()
         )
-        val digitsOnly = phone.filter { it.isDigit() }
+        state.authErrorMessage?.let { message ->
+            Text(
+                message,
+                fontSize = 12.sp,
+                color = Orange,
+                modifier = Modifier.padding(top = 10.dp)
+            )
+        }
         PrimaryButton(
-            "Получить код",
-            onClick = { state.submitPhone(phone.trim()) },
-            enabled = digitsOnly.length >= 9,
+            if (state.authLoading) stringResource(Res.string.sending_code) else stringResource(Res.string.get_code),
+            onClick = { state.submitPhone("+998$subscriberNumber") },
+            enabled = subscriberNumber.length == SUBSCRIBER_NUMBER_LENGTH && !state.authLoading,
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
         )
     }
@@ -135,37 +173,31 @@ fun AuthOtpScreen(state: AppState) {
 
     Column(Modifier.fillMaxSize().background(Surface).padding(horizontal = 24.dp, vertical = 32.dp)) {
         AuthHeader(
-            title = "Введите код из SMS",
-            subtitle = "Код отправлен на ${state.userPhone}",
+            title = stringResource(Res.string.auth_otp_title),
+            subtitle = stringResource(Res.string.auth_otp_subtitle, state.userPhone),
             onBack = { state.go(Screen.AUTH_PHONE) }
         )
         OtpCodeField(
             code = code,
             onCodeChange = { code = it }
         )
-        Text(
-            "Демо-режим: подойдёт любой 4-значный код",
-            fontSize = 12.sp,
-            color = TextMuted,
-            modifier = Modifier.padding(top = 10.dp)
-        )
         if (state.otpError) {
             Text(
-                "Код должен содержать 4 цифры",
+                state.authErrorMessage ?: stringResource(Res.string.otp_wrong_code),
                 fontSize = 12.sp,
                 color = Orange,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 10.dp)
             )
         }
         PrimaryButton(
-            "Подтвердить",
+            if (state.authLoading) stringResource(Res.string.checking) else stringResource(Res.string.confirm),
             onClick = { state.verifyOtp(code) },
-            enabled = code.length == 4,
+            enabled = code.length == 4 && !state.authLoading,
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
         )
         Row(Modifier.padding(top = 16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Text(
-                "Изменить номер",
+                stringResource(Res.string.change_number),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextMuted,
@@ -181,21 +213,21 @@ fun AuthProfileScreen(state: AppState) {
 
     Column(Modifier.fillMaxSize().background(Surface).padding(horizontal = 24.dp, vertical = 32.dp)) {
         AuthHeader(
-            title = "Как вас зовут?",
-            subtitle = "Это имя увидит курьер при доставке",
+            title = stringResource(Res.string.auth_profile_title),
+            subtitle = stringResource(Res.string.auth_profile_subtitle),
             onBack = { state.go(Screen.AUTH_OTP) }
         )
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            placeholder = { Text("Имя и фамилия") },
+            placeholder = { Text(stringResource(Res.string.name_placeholder)) },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = fieldColors,
             modifier = Modifier.fillMaxWidth()
         )
         PrimaryButton(
-            "Продолжить",
+            stringResource(Res.string.continue_label),
             onClick = { state.completeAuth(name.trim()) },
             enabled = name.isNotBlank(),
             modifier = Modifier.fillMaxWidth().padding(top = 20.dp)

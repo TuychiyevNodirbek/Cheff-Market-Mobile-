@@ -21,7 +21,7 @@ class CookingState {
     fun currentCookingStep(recipe: Recipe): Step? =
         recipe.steps.getOrNull(minOf(cookingStepIdx, recipe.steps.size - 1))
 
-    fun timerLabel(recipe: Recipe): String {
+    fun timerLabel(recipe: Recipe, messages: AppMessages): String {
         val step = currentCookingStep(recipe)
         return if (timerRunning) {
             val m = timerSeconds / 60
@@ -29,7 +29,7 @@ class CookingState {
             val sLabel = if (s < 10) "0$s" else s.toString()
             "$m:$sLabel"
         } else if (step?.timerMinutes != null) {
-            "Таймер ${step.timerMinutes} мин"
+            "${messages.timerWord} ${step.timerMinutes} ${messages.minutesShort}"
         } else ""
     }
 

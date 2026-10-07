@@ -67,18 +67,4 @@ class StorageSnapshotTest {
         assertEquals(addresses, loaded)
         assertEquals("addr-2", activeId)
     }
-
-    @Test
-    fun orders_round_trip() {
-        val settings = MapSettings()
-        val orders = listOf(
-            Order(
-                id = "2481", recipeName = "Лагман домашний", itemsSummary = "5 позиции",
-                totalLabel = "68 000", dateLabel = "18 авг, 12:00", statusLabel = "Принят",
-                district = "Юнусабад", lat = 41.356, lon = 69.288
-            )
-        )
-        settings.saveOrders(orders)
-        assertEquals(orders, settings.loadOrders())
-    }
 }

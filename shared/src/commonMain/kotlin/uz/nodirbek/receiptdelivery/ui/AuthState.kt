@@ -5,12 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import uz.nodirbek.receiptdelivery.data.AuthSnapshot
 
-/** Auth fields only. Screen transitions (OTP step, post-auth navigation) stay in the root AppState orchestration. */
+/** Auth fields only. Screen transitions (OTP step, post-auth navigation) and API calls stay in the root AppState orchestration. */
 class AuthState {
     var isAuthenticated by mutableStateOf(false)
     var userPhone by mutableStateOf("")
     var userName by mutableStateOf("")
     var otpError by mutableStateOf(false)
+    var authToken by mutableStateOf("")
+    var isLoading by mutableStateOf(false)
+    var errorMessage by mutableStateOf<String?>(null)
 
-    fun snapshot(): AuthSnapshot = AuthSnapshot(isAuthenticated, userPhone, userName)
+    fun snapshot(): AuthSnapshot = AuthSnapshot(isAuthenticated, userPhone, userName, authToken)
 }

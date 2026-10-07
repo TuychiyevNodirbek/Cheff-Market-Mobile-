@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="back">Orqaga</string>
+    <string name="cancel">Bekor qilish</string>
+    <string name="delete">O\'chirish</string>
+    <string name="change">O\'zgartirish</string>
+    <string name="done">Tayyor</string>
+    <string name="retry">Qayta urinish</string>
+    <string name="guest">Mehmon</string>
+    <string name="sum">so\'m</string>
+
+    <string name="no_internet_title">Internet aloqasi yo\'q</string>
+    <string name="no_internet_body">Ilovadan foydalanishni davom ettirish uchun Wi-Fi yoki mobil tarmoqqa ulaning</string>
+
+    <string name="onb1_title">Taomni tanlang — aynan kerak bo\'lganini oling</string>
+    <string name="onb1_body">Ortiqcha xaridlar yo\'q. Biz retsept uchun aniq mahsulotlar to\'plamini yig\'ib, uyingizga yetkazib beramiz.</string>
+    <string name="onb2_title">Agar biror narsa yo\'q bo\'lsa — darhol xabar beramiz</string>
+    <string name="onb2_body">Shaffof almashtirishlar va ombordagi qoldiqlar — to\'lovda hech qanday kutilmagan holat bo\'lmaydi.</string>
+    <string name="onb1_illustration">illyustratsiya: taom + savat</string>
+    <string name="onb2_illustration">illyustratsiya: paketli kuryer</string>
+    <string name="skip">O\'tkazib yuborish</string>
+    <string name="next">Keyingi</string>
+    <string name="continue_label">Davom etish</string>
+
+    <string name="auth_phone_title">Telefon raqamingizni kiriting</string>
+    <string name="auth_phone_subtitle">SMS orqali tasdiqlash kodini yuboramiz</string>
+    <string name="sending_code">Yuborilmoqda...</string>
+    <string name="get_code">Kodni olish</string>
+    <string name="auth_otp_title">SMS orqali kelgan kodni kiriting</string>
+    <string name="auth_otp_subtitle">Kod %1$s raqamiga yuborildi</string>
+    <string name="otp_wrong_code">Kod noto\'g\'ri. Qayta urinib ko\'ring</string>
+    <string name="checking">Tekshirilmoqda...</string>
+    <string name="confirm">Tasdiqlash</string>
+    <string name="change_number">Raqamni o\'zgartirish</string>
+    <string name="auth_profile_title">Ismingiz nima?</string>
+    <string name="auth_profile_subtitle">Yetkazib berishda kuryer shu ismni ko\'radi</string>
+    <string name="name_placeholder">Ism va familiya</string>
+
+    <string name="error_send_code">Kodni yuborib bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_verify_code">Kodni tasdiqlab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_load_recipes">Retseptlarni yuklab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_load_recipe">Retseptni yuklab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_load_orders">Buyurtmalarni yuklab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_load_order">Buyurtmani yuklab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_place_order">Buyurtmani rasmiylashtirib bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_sync_cart">Savatni serverda saqlab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_sync_address">Manzilni serverda saqlab bo\'lmadi. Internet aloqasini tekshiring.</string>
+    <string name="error_select_slot">Yetkazib berish vaqtini tanlang.</string>
+    <string name="error_select_address_first">Avval yetkazib berish manzilini tanlang.</string>
+    <string name="error_delivery_zone_not_found_prefix">\"</string>
+    <string name="error_delivery_zone_not_found_suffix">\" yetkazib berish zonasi serverda topilmadi</string>
+
+    <string name="select_address">Manzilni tanlang</string>
+    <string name="district_title">Buyurtmani qayerda qabul qilishingiz qulay?</string>
+    <string name="district_subtitle">Yetkazib berish nuqtasini belgilash uchun xaritani surang</string>
+    <string name="determining_address">Manzil aniqlanmoqda…</string>
+    <string name="delivery_address_label">Yetkazib berish manzili</string>
+    <string name="address_placeholder">Amir Temur ko\'chasi 12, 34-xonadon</string>
+    <string name="house_placeholder">Uy, xonadon</string>
+    <string name="location_failed">Joylashuvni aniqlab bo\'lmadi</string>
+    <string name="confirm_address">Manzilni tasdiqlash</string>
+    <string name="off_zone_illustration">illyustratsiya: xarita, zona</string>
+    <string name="off_zone_title">Biz hozircha bu yerga yetkazib bermaymiz</string>
+    <string name="off_zone_subtitle">Hozirda quyidagi tumanlarda ishlaymiz:</string>
+    <string name="notify_when_launch">Ishga tushganimizda xabar bering</string>
+    <string name="phone_placeholder">Telefon raqamingiz</string>
+    <string name="notify_me">Menga xabar bering</string>
+
+    <string name="nav_home">Retseptlar</string>
+    <string name="nav_search">Qidiruv</string>
+    <string name="nav_tracking">Buyurtmalar</string>
+    <string name="nav_profile">Profil</string>
+    <string name="chip_uzbek_cuisine">O\'zbek taomlari</string>
+    <string name="chip_under_30_min">30 daqiqagacha</string>
+    <string name="chip_budget">Tejamkor</string>
+    <string name="chip_vegetarian">Vegetarian</string>
+    <string name="chip_popular">Mashhur</string>
+    <string name="delivery">Yetkazib berish</string>
+    <string name="dinner_in_20">20 daqiqada kechki ovqat</string>
+    <string name="recommended_today">Bugun tavsiya etamiz</string>
+    <string name="minutes_short">daq</string>
+    <string name="servings_short">porsiya</string>
+    <string name="search_placeholder">Nomi yoki ingredient</string>
+    <string name="my_addresses">Mening manzillarim</string>
+    <string name="no_saved_addresses">Saqlangan manzillar hali yo\'q</string>
+    <string name="add_address">Manzil qo\'shish</string>
+
+    <string name="portions">Porsiyalar</string>
+    <string name="composition">Tarkibi</string>
+    <string name="in_stock">Mavjud</string>
+    <string name="cooking_steps_label">Tayyorlash bosqichlari</string>
+    <string name="steps_count">%1$d bosqich</string>
+    <string name="start_cooking_label">👨‍🍳 Pishirishni boshlash</string>
+    <string name="ingredients_cost">Ingredientlar narxi</string>
+    <string name="order_ingredients">Ingredientlarni buyurtma qilish →</string>
+    <string name="cart_title">Savat: %1$s</string>
+    <string name="show_only_missing">Faqat uyda yo\'qlarini ko\'rsatish</string>
+    <string name="substituted_note">⚠ Almashtirildi (%1$s)</string>
+    <string name="remove_have_at_home">Olib tashlash (uyda mavjud)</string>
+    <string name="items_label">Mahsulotlar</string>
+    <string name="total_label">Jami</string>
+    <string name="place_order_label">Buyurtma berish</string>
+    <string name="checkout_title">Buyurtmani rasmiylashtirish</string>
+    <string name="delivery_slot_label">Yetkazib berish vaqti</string>
+    <string name="payment_method_label">To\'lov usuli</string>
+    <string name="comment_to_courier">Kuryerga izoh</string>
+    <string name="comment_placeholder">Masalan: 5 daqiqa oldin qo\'ng\'iroq qiling</string>
+    <string name="placing_order">Rasmiylashtirilmoqda…</string>
+    <string name="pay_and_order">To\'lash va buyurtma berish · %1$s so\'m</string>
+
+    <string name="order_number">Buyurtma №%1$s</string>
+    <string name="order_word">Buyurtma</string>
+    <string name="loading_order">Buyurtma yuklanmoqda…</string>
+    <string name="order_not_found">Buyurtma topilmadi</string>
+    <string name="order_composition">Buyurtma tarkibi</string>
+    <string name="servings_abbrev">porsiya</string>
+    <string name="step_of">%1$d-bosqich, jami %2$d ta</string>
+    <string name="timer_word">Taymer</string>
+    <string name="done_appetite">Tayyor! Yoqimli ishtaha</string>
+    <string name="rate_dish">Taomni baholang va surat bilan ulashing</string>
+    <string name="back_arrow">← Orqaga</string>
+    <string name="next_arrow">Keyingi →</string>
+    <string name="order_history_label">Buyurtmalar tarixi</string>
+    <string name="favorite_recipes">Sevimli retseptlar</string>
+    <string name="settings_label">Sozlamalar</string>
+    <string name="phone_not_specified">Raqam ko\'rsatilmagan</string>
+    <string name="loading_orders">Buyurtmalar yuklanmoqda…</string>
+    <string name="no_orders_yet">Hozircha buyurtmalar yo\'q</string>
+
+    <string name="settings_title">Sozlamalar</string>
+    <string name="notifications_section">Bildirishnomalar</string>
+    <string name="order_status_notif">Buyurtma holati haqida</string>
+    <string name="default_payment_section">Standart to\'lov usuli</string>
+    <string name="language_section">Til</string>
+    <string name="dietary_prefs_section">Ovqatlanish afzalliklari</string>
+    <string name="support_section">Qo\'llab-quvvatlash</string>
+    <string name="call_support">Qo\'llab-quvvatlashga qo\'ng\'iroq qilish</string>
+    <string name="logout">Akkauntdan chiqish</string>
+
+    <string name="status_created">Yaratildi</string>
+    <string name="status_confirmed">Tasdiqlandi</string>
+    <string name="status_picking">Yig\'ilmoqda</string>
+    <string name="status_packed">Yig\'ildi</string>
+    <string name="status_delivering">Yo\'lda</string>
+    <string name="status_delivered">Yetkazildi</string>
+    <string name="status_cancelled">Bekor qilindi</string>
+
+    <string name="dietary_vegetarian">Vegetarian</string>
+    <string name="dietary_gluten_free">Glutensiz</string>
+    <string name="dietary_lactose_free">Laktozasiz</string>
+    <string name="dietary_spicy">Achchiq</string>
+    <string name="payment_cash">Naqd pul</string>
+    <string name="slot_today_1">Bugun 18:00–20:00</string>
+    <string name="slot_today_2">Bugun 20:00–22:00</string>
+    <string name="slot_tomorrow_morning">Ertaga ertalab</string>
+    <string name="slot_tomorrow_evening">Ertaga kechqurun</string>
+</resources>

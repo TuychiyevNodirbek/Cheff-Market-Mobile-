@@ -18,6 +18,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.stringResource
+import uz.nodirbek.receiptdelivery.shared.resources.Res
+import uz.nodirbek.receiptdelivery.shared.resources.continue_label
+import uz.nodirbek.receiptdelivery.shared.resources.next
+import uz.nodirbek.receiptdelivery.shared.resources.onb1_body
+import uz.nodirbek.receiptdelivery.shared.resources.onb1_illustration
+import uz.nodirbek.receiptdelivery.shared.resources.onb1_title
+import uz.nodirbek.receiptdelivery.shared.resources.onb2_body
+import uz.nodirbek.receiptdelivery.shared.resources.onb2_illustration
+import uz.nodirbek.receiptdelivery.shared.resources.onb2_title
+import uz.nodirbek.receiptdelivery.shared.resources.skip
+import uz.nodirbek.receiptdelivery.shared.resources.back
 import uz.nodirbek.receiptdelivery.ui.AppState
 import uz.nodirbek.receiptdelivery.ui.Screen
 import uz.nodirbek.receiptdelivery.ui.components.GhostTextButton
@@ -40,19 +52,19 @@ fun Onboarding1Screen(state: AppState) {
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             PlaceholderBlock(
                 modifier = Modifier.aspectRatio(1f).padding(20.dp),
-                label = "иллюстрация:\nблюдо + корзина",
+                label = stringResource(Res.string.onb1_illustration),
                 color1 = uz.nodirbek.receiptdelivery.ui.theme.Border,
                 color2 = uz.nodirbek.receiptdelivery.ui.theme.OrangeTint
             )
         }
         Text(
-            "Выбери блюдо — получи именно то, что нужно",
+            stringResource(Res.string.onb1_title),
             fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = TextDark,
             lineHeight = 32.sp,
             modifier = Modifier.padding(bottom = 12.dp)
         )
         Text(
-            "Никаких лишних покупок. Мы соберём точный набор ингредиентов под рецепт и привезём его домой.",
+            stringResource(Res.string.onb1_body),
             fontSize = 15.sp, color = TextMuted, lineHeight = 22.sp,
             modifier = Modifier.padding(bottom = 28.dp)
         )
@@ -60,8 +72,8 @@ fun Onboarding1Screen(state: AppState) {
             DotsIndicator(active = 0)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            GhostTextButton("Пропустить", onClick = { state.go(Screen.HOME) })
-            PrimaryButton("Далее", onClick = { state.go(Screen.ONB2) }, modifier = Modifier.weight(1f).fillMaxWidth())
+            GhostTextButton(stringResource(Res.string.skip), onClick = { state.go(Screen.HOME) })
+            PrimaryButton(stringResource(Res.string.next), onClick = { state.go(Screen.ONB2) }, modifier = Modifier.weight(1f).fillMaxWidth())
         }
     }
 }
@@ -77,19 +89,19 @@ fun Onboarding2Screen(state: AppState) {
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             PlaceholderBlock(
                 modifier = Modifier.aspectRatio(1f).padding(20.dp),
-                label = "иллюстрация:\nкурьер с пакетами",
+                label = stringResource(Res.string.onb2_illustration),
                 color1 = uz.nodirbek.receiptdelivery.ui.theme.Border,
                 color2 = uz.nodirbek.receiptdelivery.ui.theme.Green.copy(alpha = 0.25f)
             )
         }
         Text(
-            "Если чего-то нет — мы сразу скажем",
+            stringResource(Res.string.onb2_title),
             fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = TextDark,
             lineHeight = 32.sp,
             modifier = Modifier.padding(bottom = 12.dp)
         )
         Text(
-            "Прозрачные замены и остатки на складе — никаких сюрпризов при оплате.",
+            stringResource(Res.string.onb2_body),
             fontSize = 15.sp, color = TextMuted, lineHeight = 22.sp,
             modifier = Modifier.padding(bottom = 28.dp)
         )
@@ -97,8 +109,8 @@ fun Onboarding2Screen(state: AppState) {
             DotsIndicator(active = 1)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            GhostTextButton("Назад", onClick = { state.go(Screen.ONB1) })
-            PrimaryButton("Продолжить", onClick = { state.go(Screen.AUTH_PHONE) }, modifier = Modifier.weight(1f).fillMaxWidth())
+            GhostTextButton(stringResource(Res.string.back), onClick = { state.go(Screen.ONB1) })
+            PrimaryButton(stringResource(Res.string.continue_label), onClick = { state.go(Screen.AUTH_PHONE) }, modifier = Modifier.weight(1f).fillMaxWidth())
         }
     }
 }
